@@ -31,3 +31,16 @@ jobs:
           build-dir: ${{ runner.workspace }}/build
           build-type: Release
           configure-options: -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install MPFR
+        run: |
+          vcpkg install mpfr:x64-windows
+      - name: Build
+        uses: ashutoshvarma/action-cmake-build@master
+        with:
+          build-type: Release
