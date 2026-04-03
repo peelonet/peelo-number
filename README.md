@@ -1,6 +1,6 @@
 # peelo-number
 
-![Build](https://github.com/peelonet/peelo-number/workflows/Build/badge.svg)
+![build](https://github.com/peelonet/peelo-number/workflows/build/badge.svg)
 
 [C++17] library that implements multiple-precision floating-point decimals with
 measurement unit support using [GNU MPFR] library.
