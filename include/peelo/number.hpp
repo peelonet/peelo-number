@@ -149,7 +149,7 @@ namespace peelo
     };
 
     using value_type = mpfr_t;
-    using unit_type = std::optional<class unit>;
+    using unit_type = std::optional<struct unit>;
     using rounding_mode = mpfr_rnd_t;
 
     static constexpr rounding_mode default_rounding_mode = MPFR_RNDN;
@@ -759,6 +759,11 @@ namespace peelo
     number asinh(rounding_mode rounding = default_rounding_mode) const;
     number acosh(rounding_mode rounding = default_rounding_mode) const;
     number atanh(rounding_mode rounding = default_rounding_mode) const;
+
+    std::string to_string(
+      const std::string& format = "%.10R*g",
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
   private:
     /** Actual value of the number. */
