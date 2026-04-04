@@ -155,10 +155,35 @@ namespace peelo
     static constexpr rounding_mode default_rounding_mode = MPFR_RNDN;
 
     /**
+     * Tests whether given string contains valid number.
+     */
+    static bool is_valid(const std::string& input, int base = 10);
+
+    /**
+     * Tests whether given Unicode string contains valid number.
+     */
+    static bool is_valid(const std::u32string& input, int base = 10);
+
+    /**
      * Parses given string into number.
+     *
+     * \throws std::invalid_argument If the input does not contain a number or
+     *                               has unrecognized measurement unit symbol.
      */
     static number parse(
       const std::string& input,
+      int base = 10,
+      rounding_mode rounding = default_rounding_mode
+    );
+
+    /**
+     * Parses given Unicode string into number.
+     *
+     * \throws std::invalid_argument If the input does not contain a number or
+     *                               has unrecognized measurement unit symbol.
+     */
+    static number parse(
+      const std::u32string& input,
       int base = 10,
       rounding_mode rounding = default_rounding_mode
     );
@@ -761,6 +786,11 @@ namespace peelo
     number atanh(rounding_mode rounding = default_rounding_mode) const;
 
     std::string to_string(
+      const std::string& format = "%.10R*g",
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+
+    std::u32string to_u32string(
       const std::string& format = "%.10R*g",
       rounding_mode rounding = default_rounding_mode
     ) const;

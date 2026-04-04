@@ -25,37 +25,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <cctype>
+#include <cstddef>
+#include <functional>
+#include <stdexcept>
 
 #include "peelo/number.hpp"
 
 namespace peelo
 {
-  using digit_tester_callback = int(*)(int);
+  using digit_test_function = int(*)(int);
 
-  number
-  number::parse(const std::string& input, int base, rounding_mode rounding)
+  template<class CharT>
+  static bool
+  validator_backend(
+    const std::basic_string<CharT>& input,
+    int base,
+    const std::function<
+      std::string(const std::basic_string<CharT>&)
+    >& encoder
+  )
   {
     const auto length = input.length();
-    std::string::size_type start;
+    std::size_t start;
+    digit_test_function tester = std::isdigit;
     bool dot_seen = false;
-    number result;
-    digit_tester_callback tester = std::isdigit;
 
-    if (!length)
-    {
-      return result;
-    }
-    else if (input[0] == '+' || input[0] == '-')
-    {
-      start = 1;
-    } else {
-      start = 0;
-    }
     if (base == 16)
     {
       tester = std::isxdigit;
     }
-    for (std::string::size_type i = start; i < length; ++i)
+
+    if (!length)
+    {
+      return false;
+    }
+    if (input[0] == '+' || input[0] == '-')
+    {
+      start = 1;
+      if (length < 2)
+      {
+        return false;
+      }
+    } else {
+      start = 0;
+    }
+    for (std::size_t i = start; i < length; ++i)
     {
       const auto& c = input[i];
 
@@ -63,24 +77,167 @@ namespace peelo
       {
         if (dot_seen || i == start || i + 1 > length)
         {
-          break;
+          return false;
         }
         dot_seen = true;
       }
       else if (!tester(c))
       {
-        mpfr_init_set_str(
-          result.m_value,
-          input.substr(0, i).c_str(),
-          base,
-          rounding
-        );
-        result.m_unit = unit::find_by_symbol(input.substr(i, length - i));
-
-        return result;
+        return number::unit::find_by_symbol(
+          encoder(input.substr(i, length - i))
+        ).has_value();
       }
     }
-    mpfr_init_set_str(result.m_value, input.c_str(), base, rounding);
+
+    return true;
+  }
+
+  template<class CharT>
+  static void
+  parser_backend(
+    const std::basic_string<CharT>& input,
+    int base,
+    number::rounding_mode rounding,
+    number::value_type value,
+    number::unit_type& unit,
+    const std::function<
+      std::string(const std::basic_string<CharT>&)
+    >& encoder
+  )
+  {
+    const auto length = input.length();
+    std::size_t start;
+    digit_test_function tester = std::isdigit;
+    bool dot_seen = false;
+
+    if (base == 16)
+    {
+      tester = std::isxdigit;
+    }
+
+    if (!length)
+    {
+      throw std::invalid_argument("input contains nothing");
+    }
+    else if (input[0] == '+' || input[0] == '-')
+    {
+      start = 1;
+    } else {
+      start = 0;
+    }
+
+    for (std::size_t i = start; i < length; ++i)
+    {
+      const auto& c = input[i];
+
+      if (c == '.')
+      {
+        if (dot_seen || i == start || i + 1 > length)
+        {
+          throw std::invalid_argument("multiple `.' seen in the input");
+        }
+        dot_seen = true;
+      }
+      else if (!tester(c))
+      {
+        if (i == 0)
+        {
+          throw std::invalid_argument("input does not contain a number");
+        }
+        if (mpfr_init_set_str(
+          value,
+          encoder(input.substr(0, i)).c_str(),
+          base,
+          rounding
+        ) == -1)
+        {
+          throw std::invalid_argument("input does not contain a number");
+        }
+        unit = number::unit::find_by_symbol(
+          encoder(input.substr(i, length - i))
+        );
+        if (!unit)
+        {
+          throw std::invalid_argument("unrecognized measurement unit");
+        }
+        return;
+      }
+    }
+
+    if (mpfr_init_set_str(
+      value,
+      encoder(input).c_str(),
+      base,
+      rounding
+    ) == -1)
+    {
+      throw std::invalid_argument("input does not contain a number");
+    }
+  }
+
+  static inline std::string
+  char_encoder(const std::string& input)
+  {
+    return input;
+  }
+
+  static inline std::string
+  char32_t_encoder(const std::u32string& input)
+  {
+    const auto length = input.length();
+    std::string result;
+
+    result.reserve(length);
+    for (std::u32string::size_type i = 0; i < length; ++i)
+    {
+      result.push_back(static_cast<char>(input[i]));
+    }
+
+    return result;
+  }
+
+  bool
+  number::is_valid(const std::string& input, int base)
+  {
+    return validator_backend<char>(input, base, char_encoder);
+  }
+
+  bool
+  number::is_valid(const std::u32string& input, int base)
+  {
+    return validator_backend<char32_t>(input, base, char32_t_encoder);
+  }
+
+  number
+  number::parse(const std::string& input, int base, rounding_mode rounding)
+  {
+    number result;
+
+    parser_backend<char>(
+      input,
+      base,
+      rounding,
+      result.m_value,
+      result.m_unit,
+      char_encoder
+    );
+
+    return result;
+  }
+
+  number
+  number::parse(const std::u32string& input, int base, rounding_mode rounding)
+  {
+    number result;
+
+    parser_backend<char32_t>(
+      input,
+      base,
+      rounding,
+      result.m_value,
+      result.m_unit,
+      char32_t_encoder
+    );
 
     return result;
   }

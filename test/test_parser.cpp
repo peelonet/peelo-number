@@ -31,32 +31,53 @@
 using number = peelo::number;
 using unit = peelo::number::unit;
 
+TEST_CASE("Validating input")
+{
+  REQUIRE(number::is_valid("5"));
+  REQUIRE(number::is_valid("-5"));
+  REQUIRE(number::is_valid(U"-2.5"));
+  REQUIRE(number::is_valid(U"15km"));
+  REQUIRE(number::is_valid("ffa", 16));
+  REQUIRE(!number::is_valid(""));
+  REQUIRE(!number::is_valid("12xxx"));
+}
+
 TEST_CASE("Parsing simple integers")
 {
-  REQUIRE(long(number::parse("123")) == 123);
-  REQUIRE(long(number::parse("+123")) == 123);
-  REQUIRE(long(number::parse("-123")) == -123);
+  REQUIRE(number::parse("123").equals(123));
+  REQUIRE(number::parse("+123").equals(123));
+  REQUIRE(number::parse("-123").equals(-123));
 }
 
 TEST_CASE("Parsing floating point decimals")
 {
-  REQUIRE(double(number::parse("2.55")) == 2.55);
-  REQUIRE(double(number::parse("+2.55")) == 2.55);
-  REQUIRE(double(number::parse("-2.55")) == -2.55);
+  REQUIRE(number::parse("2.55").equals(2.55));
+  REQUIRE(number::parse("+2.55").equals(2.55));
+  REQUIRE(number::parse("-2.55").equals(-2.55));
 }
 
 TEST_CASE("Parsing with base different than zero")
 {
-  REQUIRE(long(number::parse("fa", 16)) == 250);
-  REQUIRE(long(number::parse("10101", 2)) == 21);
-  REQUIRE(long(number::parse("64", 8)) == 52);
+  REQUIRE(number::parse("fa", 16).equals(250));
+  REQUIRE(number::parse("10101", 2).equals(21));
+  REQUIRE(number::parse("64", 8).equals(52));
 }
 
 TEST_CASE("Parsing measurement units")
 {
-  const auto result = number::parse("13km");
+  REQUIRE(number::parse("13km").equals(13, number::unit::kilometer));
+  REQUIRE(number::parse("-5min").equals(-5, number::unit::minute));
+}
 
-  REQUIRE(!!result.measurement_unit());
-  REQUIRE(*result.measurement_unit() == unit::kilometer);
-  REQUIRE(!number::parse("1xxx").measurement_unit());
+TEST_CASE("Invalid input parsing")
+{
+  REQUIRE_THROWS_AS(number::parse(""), std::invalid_argument);
+  REQUIRE_THROWS_AS(number::parse("x"), std::invalid_argument);
+  REQUIRE_THROWS_AS(number::parse("5x"), std::invalid_argument);
+}
+
+TEST_CASE("Parsing Unicode string")
+{
+  REQUIRE(number::parse(U"2.5").equals(2.5));
+  REQUIRE(number::parse(U"13km").equals(13, number::unit::kilometer));
 }
