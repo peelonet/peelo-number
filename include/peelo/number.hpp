@@ -790,6 +790,11 @@ namespace peelo
       rounding_mode rounding = default_rounding_mode
     ) const;
 
+    std::u32string to_u32string(
+      const std::string& format = "%.10R*g",
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+
   private:
     /** Actual value of the number. */
     value_type m_value;

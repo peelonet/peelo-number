@@ -72,29 +72,4 @@ namespace peelo
   {
     mpfr_clear(m_value);
   }
-
-  std::string
-  number::to_string(const std::string& format, rounding_mode rounding) const
-  {
-    std::string result;
-    char* buffer = nullptr;
-    const auto length = mpfr_asprintf(
-      &buffer,
-      "%.10R*g",
-      rounding,
-      m_value
-    );
-
-    if (length >= 0)
-    {
-      result.append(buffer, length);
-      mpfr_free_str(buffer);
-    }
-    if (m_unit)
-    {
-      result.append(m_unit->symbol);
-    }
-
-    return result;
-  }
 }
