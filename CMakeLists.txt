@@ -78,7 +78,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   )
   install(
     DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ./include/peelo
     DESTINATION
       include
     FILES_MATCHING PATTERN
