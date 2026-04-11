@@ -144,7 +144,7 @@ namespace peelo
         {
           throw std::invalid_argument("input does not contain a number");
         }
-        if (mpfr_init_set_str(
+        if (mpfr_set_str(
           value,
           encoder(input.substr(0, i)).c_str(),
           base,
@@ -164,7 +164,7 @@ namespace peelo
       }
     }
 
-    if (mpfr_init_set_str(
+    if (mpfr_set_str(
       value,
       encoder(input).c_str(),
       base,
