@@ -8,20 +8,9 @@ project(
   LANGUAGES CXX
 )
 
-find_path(
-  MPFR_INCLUDE_DIR
-  NAMES mpfr.h
-  DOC "The directory containing MPFR include files."
-)
-find_library(
-  MPFR_LIBRARIES
-  NAMES mpfr libmpfr
-  DOC "Path to the MPFR library."
-)
-
-if(NOT MPFR_LIBRARIES)
-  message(FATAL_ERROR "Could not find MPFR library.")
-endif()
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+cmake_policy(SET CMP0074 NEW)
+find_package(MPFR REQUIRED)
 
 add_library(
   PeeloNumber
@@ -47,7 +36,7 @@ target_include_directories(
 
 target_link_libraries(
   PeeloNumber
-  ${MPFR_LIBRARIES}
+  ${MPFR_LIBRARY}
 )
 
 if(MSVC)

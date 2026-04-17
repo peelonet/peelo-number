@@ -1,0 +1,31 @@
+find_path(
+  MPFR_INCLUDE_DIR
+  NAMES
+    mpfr.h
+  HINTS
+    ${MPFR_ROOT}/include
+    $ENV{MPFR_ROOT}/include
+  PATH_SUFFIXES
+    include
+)
+find_library(
+  MPFR_LIBRARY
+  NAMES
+    mpfr
+  HINTS
+    ${MPFR_ROOT}/lib
+    $ENV{MPFR_ROOT}/lib
+  PATH_SUFFIXES
+    lib
+)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(
+  MPFR
+  REQUIRED_VARS
+    MPFR_LIBRARY
+    MPFR_INCLUDE_DIR
+)
+mark_as_advanced(
+  MPFR_LIBRARY
+  MPFR_INCLUDE_DIR
+)
