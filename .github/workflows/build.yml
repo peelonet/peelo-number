@@ -11,10 +11,9 @@ jobs:
       - name: Install MPFR
         run: sudo apt install -y libmpfr6 libmpfr-dev
       - name: Build
-        uses: ashutoshvarma/action-cmake-build@master
-        with:
-          build-dir: ${{ runner.workspace }}/build
-          build-type: Release
+        uses: threeal/cmake-action@v2.1.0
+      - name: Test
+        uses: threeal/ctest-action@v1.1.0
 
   build-macos:
     runs-on: macos-latest
@@ -26,8 +25,6 @@ jobs:
       - name: Export homebrew paths
         uses: spezifisch/export-homebrew-build-paths@v1.0.0
       - name: Build
-        uses: ashutoshvarma/action-cmake-build@master
-        with:
-          build-dir: ${{ runner.workspace }}/build
-          build-type: Release
-          configure-options: -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        uses: threeal/cmake-action@v2.1.0
+      - name: Test
+        uses: threeal/ctest-action@v1.1.0
