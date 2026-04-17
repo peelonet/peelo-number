@@ -103,7 +103,7 @@ namespace peelo::number_utils
     }
   }
 
-  static void
+  void
   normalize_unit(
     number::value_type value,
     number::unit_type& result,

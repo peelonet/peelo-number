@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 
 project(
   PeeloNumber
-  VERSION 2.0.2
+  VERSION 2.1.0
   DESCRIPTION "C++17 wrapper for GNU MPFR with measurement units"
   HOMEPAGE_URL "https://github.com/peelonet/peelo-number"
   LANGUAGES CXX
@@ -33,6 +33,7 @@ add_library(
   ./src/math.cpp
   ./src/number.cpp
   ./src/parser.cpp
+  ./src/rounding.cpp
   ./src/unit.cpp
   ./src/utils.cpp
 )

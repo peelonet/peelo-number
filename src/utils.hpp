@@ -70,6 +70,14 @@ namespace peelo::number_utils
   );
 
   void
+  normalize_unit(
+    number::value_type value,
+    number::unit_type& result,
+    const number::unit& base_unit,
+    number::rounding_mode rounding
+  );
+
+  void
   unary_op(
     number::value_type value,
     number::unit_type& unit,

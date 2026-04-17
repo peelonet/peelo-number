@@ -744,6 +744,24 @@ namespace peelo
      */
     number operator--(int);
 
+    // Rounding.
+
+    /**
+     * Rounds the number to the next higher or equal representable integer.
+     */
+    number ceil() const;
+
+    /**
+     * Rounds the number to the next lower or equal representable integer.
+     */
+    number floor() const;
+
+    /**
+     * Rounds the number to the nearest representable integer, rounding halfway
+     * cases away from zero.
+     */
+    number round() const;
+
     // Exponential functions.
     number exp(rounding_mode rounding = default_rounding_mode) const;
     number exp2(rounding_mode rounding = default_rounding_mode) const;
