@@ -7,6 +7,7 @@ find_path(
     $ENV{MPFR_ROOT}/include
   PATH_SUFFIXES
     include
+  NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
   MPFR_LIBRARY
@@ -17,6 +18,18 @@ find_library(
     $ENV{MPFR_ROOT}/lib
   PATH_SUFFIXES
     lib
+  NO_CMAKE_FIND_ROOT_PATH
+)
+find_library(
+  GMP_LIBRARY
+  NAMES
+    gmp
+  HINTS
+    ${MPFR_ROOT}/lib
+    $ENV{MPFR_ROOT}/lib
+  PATH_SUFFIXES
+    lib
+  NO_CMAKE_FIND_ROOT_PATH
 )
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
@@ -25,7 +38,13 @@ find_package_handle_standard_args(
     MPFR_LIBRARY
     MPFR_INCLUDE_DIR
 )
+if(GMP_LIBRARY)
+  set(MPFR_LIBRARIES ${MPFR_LIBRARY} ${GMP_LIBRARY})
+else()
+  set(MPFR_LIBRARIES ${MPFR_LIBRARY})
+endif()
 mark_as_advanced(
   MPFR_LIBRARY
+  GMP_LIBRARY
   MPFR_INCLUDE_DIR
 )
