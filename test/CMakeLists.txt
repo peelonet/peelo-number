@@ -31,5 +31,17 @@ foreach(TEST_FILENAME ${TEST_SOURCES})
     Catch2::Catch2WithMain
     PeeloNumber
   )
+  if(EMSCRIPTEN)
+    target_compile_options(
+      ${TEST_NAME}
+      PRIVATE
+        -fwasm-exceptions
+    )
+    target_link_options(
+      ${TEST_NAME}
+      PRIVATE
+        -fwasm-exceptions
+    )
+  endif()
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 endforeach()
