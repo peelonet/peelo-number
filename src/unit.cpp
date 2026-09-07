@@ -144,10 +144,10 @@ namespace peelo
 
   static const std::vector<number::unit> all_length_units =
   {
-    number::unit::millimeter,
-    number::unit::centimeter,
-    number::unit::meter,
     number::unit::kilometer,
+    number::unit::meter,
+    number::unit::centimeter,
+    number::unit::millimeter,
   };
 
   static const std::vector<number::unit> all_mass_units =

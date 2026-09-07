@@ -119,15 +119,14 @@ namespace peelo
   {
     number result;
 
-    number_utils::binary_op(
+    number_utils::multiply_op(
       result.m_value,
       result.m_unit,
       m_value,
       m_unit,
       that.m_value,
       that.m_unit,
-      rounding,
-      mpfr_mul
+      rounding
     );
 
     return result;
@@ -142,15 +141,14 @@ namespace peelo
   {
     number result;
 
-    number_utils::binary_op(
+    number_utils::multiply_op(
       result.m_value,
       result.m_unit,
       m_value,
       m_unit,
       value,
       unit,
-      rounding,
-      mpfr_mul_d
+      rounding
     );
 
     return result;
@@ -161,15 +159,14 @@ namespace peelo
   {
     number result;
 
-    number_utils::binary_op(
+    number_utils::divide_op(
       result.m_value,
       result.m_unit,
       m_value,
       m_unit,
       that.m_value,
       that.m_unit,
-      rounding,
-      mpfr_div
+      rounding
     );
 
     return result;
@@ -184,15 +181,14 @@ namespace peelo
   {
     number result;
 
-    number_utils::binary_op(
+    number_utils::divide_op(
       result.m_value,
       result.m_unit,
       m_value,
       m_unit,
       value,
       unit,
-      rounding,
-      mpfr_div_d
+      rounding
     );
 
     return result;

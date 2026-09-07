@@ -41,7 +41,7 @@ TEST_CASE("add()")
   REQUIRE(
     number(1.0, unit::kilometer)
       .add(number(2.0, unit::kilometer))
-      .equals(3000.0, unit::meter)
+      .equals(3.0, unit::kilometer)
   );
 
   REQUIRE(
@@ -52,7 +52,18 @@ TEST_CASE("add()")
   REQUIRE(
     number(1.0, unit::kilometer)
       .add(2.0, unit::kilometer)
-      .equals(3000.0, unit::meter)
+      .equals(3.0, unit::kilometer)
+  );
+
+  REQUIRE(
+    number(1.0, unit::kilometer)
+      .add(number(0.5, unit::kilometer))
+      .equals(1.5, unit::kilometer)
+  );
+  REQUIRE(
+    number(1.0, unit::kilometer)
+      .add(number(500.0, unit::meter))
+      .equals(1.5, unit::kilometer)
   );
 
   REQUIRE_THROWS_AS(
@@ -75,7 +86,7 @@ TEST_CASE("substract()")
   REQUIRE(
     number(5.0, unit::kilometer)
       .substract(number(2.0, unit::kilometer))
-      .equals(3000.0, unit::meter)
+      .equals(3.0, unit::kilometer)
   );
 
   REQUIRE(
@@ -86,7 +97,7 @@ TEST_CASE("substract()")
   REQUIRE(
     number(5.0, unit::kilometer)
       .substract(2.0, unit::kilometer)
-      .equals(3000.0, unit::meter)
+      .equals(3.0, unit::kilometer)
   );
 
   REQUIRE_THROWS_AS(
@@ -104,7 +115,12 @@ TEST_CASE("multiply()")
   REQUIRE(
     number(2.0, unit::kilometer)
       .multiply(number(2.0, unit::meter))
-      .equals(4000.0, unit::meter)
+      .equals(4.0, unit::kilometer)
+  );
+  REQUIRE(
+    number(15.0, unit::kilometer)
+      .multiply(number(15.0, unit::kilometer))
+      .equals(225.0, unit::kilometer)
   );
   REQUIRE(
     number(2.0, unit::kilometer)

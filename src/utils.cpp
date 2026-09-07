@@ -111,15 +111,26 @@ namespace peelo::number_utils
     number::rounding_mode rounding
   )
   {
+    const number::unit* best = nullptr;
+
     for (const auto& unit : number::unit::all_units_of(base_unit.type))
     {
       if (unit.multiplier > 0 && mpfr_cmp_si(value, unit.multiplier) >= 0)
       {
-        mpfr_div_si(value, value, unit.multiplier, rounding);
-        result = unit;
-        return;
+        if (!best || unit.multiplier > best->multiplier)
+        {
+          best = &unit;
+        }
       }
     }
+
+    if (best)
+    {
+      mpfr_div_si(value, value, best->multiplier, rounding);
+      result = *best;
+      return;
+    }
+
     if (!result)
     {
       result = base_unit;
@@ -210,6 +221,186 @@ namespace peelo::number_utils
       );
     } else {
       callback(value, a_value, b_value, rounding);
+    }
+  }
+
+  void
+  multiply_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const number::value_type b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  )
+  {
+    unit_check(a_unit, b_unit);
+    if (a_unit)
+    {
+      if (!b_unit || a_unit->equals(*b_unit))
+      {
+        mpfr_mul(value, a_value, b_value, rounding);
+        unit = a_unit;
+        return;
+      }
+
+      number::value_type a_base_value;
+      number::value_type b_base_value;
+
+      to_base_unit(a_base_value, a_value, a_unit, rounding);
+      to_base_unit(b_base_value, b_value, b_unit, rounding);
+      mpfr_mul(value, a_base_value, b_base_value, rounding);
+      mpfr_clear(a_base_value);
+      mpfr_clear(b_base_value);
+      normalize_unit(
+        value,
+        unit,
+        number::unit::base_unit_of(a_unit->type),
+        rounding
+      );
+    }
+    else
+    {
+      mpfr_mul(value, a_value, b_value, rounding);
+    }
+  }
+
+  void
+  multiply_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const double b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  )
+  {
+    unit_check(a_unit, b_unit);
+    if (a_unit)
+    {
+      if (!b_unit || a_unit->equals(*b_unit))
+      {
+        mpfr_mul_d(value, a_value, b_value, rounding);
+        unit = a_unit;
+        return;
+      }
+
+      number::value_type a_base_value;
+      double b_base_value;
+
+      to_base_unit(a_base_value, a_value, a_unit, rounding);
+      to_base_unit(b_base_value, b_value, b_unit);
+      mpfr_mul_d(value, a_base_value, b_base_value, rounding);
+      mpfr_clear(a_base_value);
+      normalize_unit(
+        value,
+        unit,
+        number::unit::base_unit_of(a_unit->type),
+        rounding
+      );
+    }
+    else
+    {
+      mpfr_mul_d(value, a_value, b_value, rounding);
+    }
+  }
+
+  void
+  divide_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const number::value_type b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  )
+  {
+    unit_check(a_unit, b_unit);
+    if (a_unit)
+    {
+      if (!b_unit)
+      {
+        mpfr_div(value, a_value, b_value, rounding);
+        unit = a_unit;
+        return;
+      }
+
+      if (a_unit->equals(*b_unit))
+      {
+        mpfr_div(value, a_value, b_value, rounding);
+        unit = std::nullopt;
+        return;
+      }
+
+      number::value_type a_base_value;
+      number::value_type b_base_value;
+
+      to_base_unit(a_base_value, a_value, a_unit, rounding);
+      to_base_unit(b_base_value, b_value, b_unit, rounding);
+      mpfr_div(value, a_base_value, b_base_value, rounding);
+      mpfr_clear(a_base_value);
+      mpfr_clear(b_base_value);
+      normalize_unit(
+        value,
+        unit,
+        number::unit::base_unit_of(a_unit->type),
+        rounding
+      );
+    }
+    else
+    {
+      mpfr_div(value, a_value, b_value, rounding);
+    }
+  }
+
+  void
+  divide_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const double b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  )
+  {
+    unit_check(a_unit, b_unit);
+    if (a_unit)
+    {
+      if (!b_unit)
+      {
+        mpfr_div_d(value, a_value, b_value, rounding);
+        unit = a_unit;
+        return;
+      }
+
+      if (a_unit->equals(*b_unit))
+      {
+        mpfr_div_d(value, a_value, b_value, rounding);
+        unit = std::nullopt;
+        return;
+      }
+
+      number::value_type a_base_value;
+      double b_base_value;
+
+      to_base_unit(a_base_value, a_value, a_unit, rounding);
+      to_base_unit(b_base_value, b_value, b_unit);
+      mpfr_div_d(value, a_base_value, b_base_value, rounding);
+      mpfr_clear(a_base_value);
+      normalize_unit(
+        value,
+        unit,
+        number::unit::base_unit_of(a_unit->type),
+        rounding
+      );
+    }
+    else
+    {
+      mpfr_div_d(value, a_value, b_value, rounding);
     }
   }
 }

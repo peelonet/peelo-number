@@ -76,7 +76,7 @@ Expected output:
 
 ```
 1.25 + 2.75 = 4
-1km + 500m = 1500m
+1km + 500m = 1.5km
 ```
 
 [C++17]: https://en.cppreference.com/w/cpp/17

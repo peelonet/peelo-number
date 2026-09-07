@@ -108,4 +108,48 @@ namespace peelo::number_utils
     number::rounding_mode rounding,
     decimal_binary_op_callback callback
   );
+
+  void
+  multiply_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const number::value_type b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  );
+
+  void
+  multiply_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const double b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  );
+
+  void
+  divide_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const number::value_type b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  );
+
+  void
+  divide_op(
+    number::value_type value,
+    number::unit_type& unit,
+    const number::value_type a_value,
+    const number::unit_type& a_unit,
+    const double b_value,
+    const number::unit_type& b_unit,
+    number::rounding_mode rounding
+  );
 }
