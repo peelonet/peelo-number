@@ -37,4 +37,10 @@ TEST_CASE("String conversion")
   REQUIRE(number(5.5).to_string() == "5.5");
   REQUIRE(number(-2.3).to_string() == "-2.3");
   REQUIRE(number(1.2, unit::meter).to_string() == "1.2m");
+  REQUIRE(number(15000000.0).to_string() == "15000000");
+  REQUIRE(number(1e20).to_string() == "100000000000000000000");
+  REQUIRE(number(1e-10).to_string() == "0.0000000001");
+  REQUIRE(
+    number::parse("15_000_000km").to_string() == "15000000km"
+  );
 }

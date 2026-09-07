@@ -804,12 +804,12 @@ namespace peelo
     number atanh(rounding_mode rounding = default_rounding_mode) const;
 
     std::string to_string(
-      const std::string& format = "%.10R*g",
+      const std::string& format = "",
       rounding_mode rounding = default_rounding_mode
     ) const;
 
     std::u32string to_u32string(
-      const std::string& format = "%.10R*g",
+      const std::string& format = "",
       rounding_mode rounding = default_rounding_mode
     ) const;
 
