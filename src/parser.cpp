@@ -35,6 +35,44 @@ namespace peelo
 {
   using digit_test_function = int(*)(int);
 
+  static inline bool
+  is_underscore(int c)
+  {
+    return c == '_';
+  }
+
+  static inline bool
+  is_valid_underscore(
+    const std::string& input,
+    std::size_t index,
+    digit_test_function tester
+  )
+  {
+    if (index == 0 || index + 1 >= input.length())
+    {
+      return false;
+    }
+
+    return tester(input[index - 1]) && tester(input[index + 1]);
+  }
+
+  static inline std::string
+  strip_underscores(const std::string& input)
+  {
+    std::string result;
+
+    result.reserve(input.length());
+    for (const auto c : input)
+    {
+      if (c != '_')
+      {
+        result.push_back(c);
+      }
+    }
+
+    return result;
+  }
+
   template<class CharT>
   static bool
   validator_backend(
@@ -80,6 +118,13 @@ namespace peelo
           return false;
         }
         dot_seen = true;
+      }
+      else if (is_underscore(c))
+      {
+        if (!is_valid_underscore(encoder(input), i, tester))
+        {
+          return false;
+        }
       }
       else if (!tester(c))
       {
@@ -138,6 +183,13 @@ namespace peelo
         }
         dot_seen = true;
       }
+      else if (is_underscore(c))
+      {
+        if (!is_valid_underscore(encoder(input), i, tester))
+        {
+          throw std::invalid_argument("invalid underscore placement in input");
+        }
+      }
       else if (!tester(c))
       {
         if (i == 0)
@@ -146,7 +198,7 @@ namespace peelo
         }
         if (mpfr_set_str(
           value,
-          encoder(input.substr(0, i)).c_str(),
+          strip_underscores(encoder(input.substr(0, i))).c_str(),
           base,
           rounding
         ) == -1)
@@ -166,7 +218,7 @@ namespace peelo
 
     if (mpfr_set_str(
       value,
-      encoder(input).c_str(),
+      strip_underscores(encoder(input)).c_str(),
       base,
       rounding
     ) == -1)

@@ -37,9 +37,17 @@ TEST_CASE("Validating input")
   REQUIRE(number::is_valid("-5"));
   REQUIRE(number::is_valid(U"-2.5"));
   REQUIRE(number::is_valid(U"15km"));
+  REQUIRE(number::is_valid("15_000_000"));
+  REQUIRE(number::is_valid("15_000_000km"));
+  REQUIRE(number::is_valid("-1_000.5_00"));
   REQUIRE(number::is_valid("ffa", 16));
+  REQUIRE(number::is_valid("fa_fa", 16));
   REQUIRE(!number::is_valid(""));
   REQUIRE(!number::is_valid("12xxx"));
+  REQUIRE(!number::is_valid("_15000"));
+  REQUIRE(!number::is_valid("15000_"));
+  REQUIRE(!number::is_valid("15__000"));
+  REQUIRE(!number::is_valid("1_.5"));
 }
 
 TEST_CASE("Parsing simple integers")
@@ -63,6 +71,20 @@ TEST_CASE("Parsing with base different than zero")
   REQUIRE(number::parse("64", 8).equals(52));
 }
 
+TEST_CASE("Parsing with digit separators")
+{
+  REQUIRE(number::parse("15_000_000").equals(15000000));
+  REQUIRE(
+    number::parse("15_000_000km").equals(
+      15000000,
+      number::unit::kilometer
+    )
+  );
+  REQUIRE(number::parse("-1_000.5_00").equals(-1000.500));
+  REQUIRE(number::parse("fa_fa", 16).equals(0xfafa));
+  REQUIRE(number::parse(U"1_000_000").equals(1000000));
+}
+
 TEST_CASE("Parsing measurement units")
 {
   REQUIRE(number::parse("13km").equals(13, number::unit::kilometer));
@@ -74,6 +96,9 @@ TEST_CASE("Invalid input parsing")
   REQUIRE_THROWS_AS(number::parse(""), std::invalid_argument);
   REQUIRE_THROWS_AS(number::parse("x"), std::invalid_argument);
   REQUIRE_THROWS_AS(number::parse("5x"), std::invalid_argument);
+  REQUIRE_THROWS_AS(number::parse("_15000"), std::invalid_argument);
+  REQUIRE_THROWS_AS(number::parse("15000_"), std::invalid_argument);
+  REQUIRE_THROWS_AS(number::parse("15__000"), std::invalid_argument);
 }
 
 TEST_CASE("Parsing Unicode string")
