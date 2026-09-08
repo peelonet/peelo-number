@@ -26,6 +26,7 @@
  */
 #include "peelo/number.hpp"
 
+#include "./storage_api.hpp"
 #include "./utils.hpp"
 
 namespace peelo
@@ -56,7 +57,8 @@ namespace peelo
   {
     number result(*this);
 
-    rounding_op(result.m_value, result.m_unit, mpfr_ceil);
+    internal::promote_to_mpfr(result);
+    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_ceil);
 
     return result;
   }
@@ -66,7 +68,8 @@ namespace peelo
   {
     number result(*this);
 
-    rounding_op(result.m_value, result.m_unit, mpfr_floor);
+    internal::promote_to_mpfr(result);
+    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_floor);
 
     return result;
   }
@@ -76,7 +79,8 @@ namespace peelo
   {
     number result(*this);
 
-    rounding_op(result.m_value, result.m_unit, mpfr_round);
+    internal::promote_to_mpfr(result);
+    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_round);
 
     return result;
   }

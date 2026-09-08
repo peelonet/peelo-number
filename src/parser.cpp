@@ -25,11 +25,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <cctype>
+#include <cerrno>
+#include <climits>
 #include <cstddef>
+#include <cstdlib>
 #include <functional>
 #include <stdexcept>
 
 #include "peelo/number.hpp"
+
+#include "./storage_api.hpp"
 
 namespace peelo
 {
@@ -71,6 +76,58 @@ namespace peelo
     }
 
     return result;
+  }
+
+  static void
+  parse_mpfr_str(
+    number& result,
+    const std::string& numeric,
+    int base,
+    number::rounding_mode rounding,
+    const number::unit_type& unit
+  )
+  {
+    internal::destroy(result);
+    internal::init_mpfr_si(result, 0, unit);
+    if (mpfr_set_str(
+      internal::mpfr_mut(result),
+      numeric.c_str(),
+      base,
+      rounding
+    ) == -1)
+    {
+      throw std::invalid_argument("input does not contain a number");
+    }
+  }
+
+  static void
+  parse_numeric_token(
+    number& result,
+    const std::string& numeric,
+    int base,
+    number::rounding_mode rounding,
+    const number::unit_type& unit,
+    bool dot_seen
+  )
+  {
+    if (unit || dot_seen)
+    {
+      parse_mpfr_str(result, numeric, base, rounding, unit);
+      return;
+    }
+
+    errno = 0;
+    char* end = nullptr;
+    const long long parsed = std::strtoll(numeric.c_str(), &end, base);
+
+    if (end != numeric.c_str() + numeric.length() || errno == ERANGE)
+    {
+      parse_mpfr_str(result, numeric, base, rounding, unit);
+      return;
+    }
+
+    internal::destroy(result);
+    internal::init_small(result, static_cast<std::int64_t>(parsed));
   }
 
   template<class CharT>
@@ -143,8 +200,7 @@ namespace peelo
     const std::basic_string<CharT>& input,
     int base,
     number::rounding_mode rounding,
-    number::value_type value,
-    number::unit_type& unit,
+    number& result,
     const std::function<
       std::string(const std::basic_string<CharT>&)
     >& encoder
@@ -196,35 +252,33 @@ namespace peelo
         {
           throw std::invalid_argument("input does not contain a number");
         }
-        if (mpfr_set_str(
-          value,
-          strip_underscores(encoder(input.substr(0, i))).c_str(),
-          base,
-          rounding
-        ) == -1)
-        {
-          throw std::invalid_argument("input does not contain a number");
-        }
-        unit = number::unit::find_by_symbol(
+
+        const auto numeric = strip_underscores(
+          encoder(input.substr(0, i))
+        );
+        const auto unit = number::unit::find_by_symbol(
           encoder(input.substr(i, length - i))
         );
+
         if (!unit)
         {
           throw std::invalid_argument("unrecognized measurement unit");
         }
+
+        parse_numeric_token(result, numeric, base, rounding, unit, dot_seen);
+
         return;
       }
     }
 
-    if (mpfr_set_str(
-      value,
-      strip_underscores(encoder(input)).c_str(),
+    parse_numeric_token(
+      result,
+      strip_underscores(encoder(input)),
       base,
-      rounding
-    ) == -1)
-    {
-      throw std::invalid_argument("input does not contain a number");
-    }
+      rounding,
+      std::nullopt,
+      dot_seen
+    );
   }
 
   static inline std::string
@@ -265,14 +319,7 @@ namespace peelo
   {
     number result;
 
-    parser_backend<char>(
-      input,
-      base,
-      rounding,
-      result.m_value,
-      result.m_unit,
-      char_encoder
-    );
+    parser_backend<char>(input, base, rounding, result, char_encoder);
 
     return result;
   }
@@ -282,14 +329,7 @@ namespace peelo
   {
     number result;
 
-    parser_backend<char32_t>(
-      input,
-      base,
-      rounding,
-      result.m_value,
-      result.m_unit,
-      char32_t_encoder
-    );
+    parser_backend<char32_t>(input, base, rounding, result, char32_t_encoder);
 
     return result;
   }

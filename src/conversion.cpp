@@ -28,6 +28,7 @@
 
 #include "peelo/number.hpp"
 
+#include "./storage_api.hpp"
 #include "./utils.hpp"
 
 namespace peelo
@@ -66,14 +67,28 @@ namespace peelo
     if (m_unit)
     {
       value_type a;
+      number copy(*this);
 
-      number_utils::to_base_unit(a, m_value, m_unit, default_rounding_mode);
+      internal::promote_to_mpfr(copy);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(copy),
+        m_unit,
+        default_rounding_mode
+      );
       result = mpfr_get_d(a, default_rounding_mode);
       mpfr_clear(a);
-    } else {
-      result = mpfr_get_d(m_value, default_rounding_mode);
+      size_check();
     }
-    size_check();
+    else if (internal::is_small(*this))
+    {
+      result = static_cast<double>(m_small);
+    }
+    else
+    {
+      result = mpfr_get_d(internal::mpfr_value(*this), default_rounding_mode);
+      size_check();
+    }
 
     return result;
   }
@@ -85,14 +100,28 @@ namespace peelo
     if (m_unit)
     {
       value_type a;
+      number copy(*this);
 
-      number_utils::to_base_unit(a, m_value, m_unit, default_rounding_mode);
+      internal::promote_to_mpfr(copy);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(copy),
+        m_unit,
+        default_rounding_mode
+      );
       result = mpfr_get_si(a, default_rounding_mode);
       mpfr_clear(a);
-    } else {
-      result = mpfr_get_si(m_value, default_rounding_mode);
+      size_check();
     }
-    size_check();
+    else if (internal::is_small(*this))
+    {
+      result = static_cast<long>(m_small);
+    }
+    else
+    {
+      result = mpfr_get_si(internal::mpfr_value(*this), default_rounding_mode);
+      size_check();
+    }
 
     return result;
   }
