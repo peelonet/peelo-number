@@ -24,7 +24,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cmath>
+#include <cstdint>
+
 #include "peelo/number.hpp"
+
+#include "./storage.hpp"
+#include "./storage_api.hpp"
 
 namespace peelo
 {
@@ -33,8 +39,8 @@ namespace peelo
   {
     number result;
 
-    mpfr_set_inf(result.m_value, 0);
-    result.m_unit = unit;
+    internal::destroy(result);
+    internal::init_mpfr_inf(result, unit);
 
     return result;
   }
@@ -44,8 +50,8 @@ namespace peelo
   {
     number result;
 
-    mpfr_set_nan(result.m_value);
-    result.m_unit = unit;
+    internal::destroy(result);
+    internal::init_mpfr_nan(result, unit);
 
     return result;
   }
@@ -53,23 +59,121 @@ namespace peelo
   number::number(const unit_type& unit)
     : m_unit(unit)
   {
-    mpfr_init_set_si(m_value, 0, default_rounding_mode);
+    if (unit)
+    {
+      internal::init_mpfr_si(*this, 0, unit);
+    }
+    else
+    {
+      internal::init_small(*this, 0);
+    }
   }
 
   number::number(const number& that)
     : m_unit(that.m_unit)
   {
-    mpfr_init_set(m_value, that.m_value, default_rounding_mode);
+    internal::copy_from(*this, that);
+  }
+
+  number::number(number&& that) noexcept
+  {
+    internal::move_from(*this, std::move(that));
+  }
+
+  number::number(int value, const unit_type& unit)
+    : m_unit(unit)
+  {
+    if (unit)
+    {
+      internal::init_mpfr_si(*this, value, unit);
+    }
+    else
+    {
+      internal::init_small(*this, value);
+    }
+  }
+
+  number::number(std::int64_t value, const unit_type& unit)
+    : m_unit(unit)
+  {
+    if (unit)
+    {
+      internal::init_mpfr_s64(*this, value, unit);
+    }
+    else
+    {
+      internal::init_small(*this, value);
+    }
   }
 
   number::number(double value, const unit_type& unit, rounding_mode rounding)
     : m_unit(unit)
   {
-    mpfr_init_set_d(m_value, value, rounding);
+    if (unit)
+    {
+      internal::init_mpfr_d(*this, value, unit, rounding);
+    }
+    else if (
+      std::isfinite(value)
+      && value == std::trunc(value)
+      && value >= static_cast<double>(INT64_MIN)
+      && value <= static_cast<double>(INT64_MAX)
+    )
+    {
+      internal::init_small(*this, static_cast<std::int64_t>(value));
+    }
+    else
+    {
+      internal::init_mpfr_d(*this, value, unit, rounding);
+    }
   }
 
   number::~number()
   {
-    mpfr_clear(m_value);
+    internal::destroy(*this);
+  }
+
+  number&
+  number::operator=(number&& that) noexcept
+  {
+    if (this != &that)
+    {
+      internal::move_from(*this, std::move(that));
+    }
+
+    return *this;
+  }
+
+  bool
+  number::is_inf() const
+  {
+    return internal::is_mpfr(*this) && mpfr_inf_p(internal::mpfr_value(*this));
+  }
+
+  bool
+  number::is_nan() const
+  {
+    return internal::is_mpfr(*this) && mpfr_nan_p(internal::mpfr_value(*this));
+  }
+
+  number::operator bool() const noexcept
+  {
+    if (internal::is_small(*this))
+    {
+      return m_small != 0;
+    }
+
+    return mpfr_sgn(internal::mpfr_value(*this)) != 0;
+  }
+
+  bool
+  number::operator!() const noexcept
+  {
+    if (internal::is_small(*this))
+    {
+      return m_small == 0;
+    }
+
+    return mpfr_sgn(internal::mpfr_value(*this)) == 0;
   }
 }

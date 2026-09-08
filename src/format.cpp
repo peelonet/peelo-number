@@ -24,7 +24,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <string>
+
 #include "peelo/number.hpp"
+
+#include "./storage_api.hpp"
 
 namespace peelo
 {
@@ -127,16 +131,30 @@ namespace peelo
 
     if (format.empty())
     {
-      result = plain_decimal_string(m_value, rounding, 10);
+      if (internal::is_small(*this))
+      {
+        result = std::to_string(internal::small_value(*this));
+      }
+      else
+      {
+        result = plain_decimal_string(
+          internal::mpfr_value(*this),
+          rounding,
+          10
+        );
+      }
     }
     else
     {
+      number copy(*this);
+
+      internal::promote_to_mpfr(copy, rounding);
       char* buffer = nullptr;
       const auto length = mpfr_asprintf(
         &buffer,
         format.c_str(),
         rounding,
-        m_value
+        internal::mpfr_value(copy)
       );
 
       if (length >= 0)

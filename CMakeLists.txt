@@ -23,6 +23,7 @@ add_library(
   ./src/number.cpp
   ./src/parser.cpp
   ./src/rounding.cpp
+  ./src/storage.cpp
   ./src/unit.cpp
   ./src/utils.cpp
 )

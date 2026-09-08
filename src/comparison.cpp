@@ -26,6 +26,7 @@
  */
 #include "peelo/number.hpp"
 
+#include "./storage_api.hpp"
 #include "./utils.hpp"
 
 namespace peelo
@@ -33,31 +34,57 @@ namespace peelo
   bool
   number::equals(const number& that, rounding_mode rounding) const noexcept
   {
-    int result;
-
     if (m_unit)
     {
-      value_type a;
-      value_type b;
-
       if (!that.m_unit || m_unit->type != that.m_unit->type)
       {
         return false;
       }
-      number_utils::to_base_unit(a, m_value, m_unit, rounding);
-      number_utils::to_base_unit(b, that.m_value, that.m_unit, rounding);
-      result = mpfr_cmp(a, b);
+
+      value_type a;
+      value_type b;
+      number lhs(*this);
+      number rhs(that);
+
+      internal::promote_to_mpfr(lhs, rounding);
+      internal::promote_to_mpfr(rhs, rounding);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(lhs),
+        m_unit,
+        rounding
+      );
+      number_utils::to_base_unit(
+        b,
+        internal::mpfr_value(rhs),
+        that.m_unit,
+        rounding
+      );
+      const int result = mpfr_cmp(a, b);
+
       mpfr_clear(a);
       mpfr_clear(b);
-    }
-    else if (that.m_unit)
-    {
-      return false;
-    } else {
-      result = mpfr_cmp(m_value, that.m_value);
+
+      return result == 0;
     }
 
-    return result == 0;
+    if (that.m_unit)
+    {
+      return false;
+    }
+
+    if (internal::is_small(*this) && internal::is_small(that))
+    {
+      return m_small == that.m_small;
+    }
+
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
+
+    return mpfr_cmp(internal::mpfr_value(lhs), internal::mpfr_value(rhs)) == 0;
   }
 
   bool
@@ -67,53 +94,96 @@ namespace peelo
     rounding_mode rounding
   ) const noexcept
   {
-    int result;
-
     if (m_unit)
     {
-      value_type a;
-      double b;
-
       if (!unit || m_unit->type != unit->type)
       {
         return false;
       }
-      number_utils::to_base_unit(a, m_value, m_unit, rounding);
+
+      value_type a;
+      double b;
+      number lhs(*this);
+
+      internal::promote_to_mpfr(lhs, rounding);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(lhs),
+        m_unit,
+        rounding
+      );
       number_utils::to_base_unit(b, value, unit);
-      result = mpfr_cmp_d(a, b);
+      const int result = mpfr_cmp_d(a, b);
+
       mpfr_clear(a);
-    }
-    else if (unit)
-    {
-      return false;
-    } else {
-      result = mpfr_cmp_d(m_value, value);
+
+      return result == 0;
     }
 
-    return result == 0;
+    if (unit)
+    {
+      return false;
+    }
+
+    if (internal::is_small(*this))
+    {
+      return static_cast<double>(m_small) == value;
+    }
+
+    return mpfr_cmp_d(internal::mpfr_value(*this), value) == 0;
   }
 
   int
   number::compare(const number& that, rounding_mode rounding) const
   {
-    int result;
-
     number_utils::unit_check(m_unit, that.m_unit);
+
+    if (!m_unit && internal::is_small(*this) && internal::is_small(that))
+    {
+      if (m_small < that.m_small)
+      {
+        return -1;
+      }
+      if (m_small > that.m_small)
+      {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
+
     if (m_unit)
     {
       value_type a;
       value_type b;
 
-      number_utils::to_base_unit(a, m_value, m_unit, rounding);
-      number_utils::to_base_unit(b, that.m_value, that.m_unit, rounding);
-      result = mpfr_cmp(a, b);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(lhs),
+        m_unit,
+        rounding
+      );
+      number_utils::to_base_unit(
+        b,
+        internal::mpfr_value(rhs),
+        that.m_unit,
+        rounding
+      );
+      const int result = mpfr_cmp(a, b);
+
       mpfr_clear(a);
       mpfr_clear(b);
-    } else {
-      result = mpfr_cmp(m_value, that.m_value);
+
+      return result;
     }
 
-    return result;
+    return mpfr_cmp(internal::mpfr_value(lhs), internal::mpfr_value(rhs));
   }
 
   int
@@ -123,22 +193,49 @@ namespace peelo
     rounding_mode rounding
   ) const
   {
-    int result;
-
     number_utils::unit_check(m_unit, unit);
+
+    if (!m_unit && internal::is_small(*this) && !unit)
+    {
+      const double lhs = static_cast<double>(m_small);
+
+      if (lhs < value)
+      {
+        return -1;
+      }
+      if (lhs > value)
+      {
+        return 1;
+      }
+
+      return 0;
+    }
+
     if (m_unit)
     {
       value_type a;
       double b;
+      number lhs(*this);
 
-      number_utils::to_base_unit(a, m_value, m_unit, rounding);
+      internal::promote_to_mpfr(lhs, rounding);
+      number_utils::to_base_unit(
+        a,
+        internal::mpfr_value(lhs),
+        m_unit,
+        rounding
+      );
       number_utils::to_base_unit(b, value, unit);
-      result = mpfr_cmp_d(a, b);
+      const int result = mpfr_cmp_d(a, b);
+
       mpfr_clear(a);
-    } else {
-      result = mpfr_cmp_d(m_value, value);
+
+      return result;
     }
 
-    return result;
+    number copy(*this);
+
+    internal::promote_to_mpfr(copy, rounding);
+
+    return mpfr_cmp_d(internal::mpfr_value(copy), value);
   }
 }

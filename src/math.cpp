@@ -26,6 +26,7 @@
  */
 #include "peelo/number.hpp"
 
+#include "./storage_api.hpp"
 #include "./utils.hpp"
 
 namespace peelo
@@ -35,8 +36,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_exp
@@ -50,8 +52,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_exp2
@@ -65,8 +68,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_expm1
@@ -80,8 +84,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_log
@@ -95,8 +100,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_log10
@@ -110,8 +116,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_log2
@@ -125,8 +132,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_log1p
@@ -139,14 +147,19 @@ namespace peelo
   number::pow(const number& exp, rounding_mode rounding) const
   {
     number result;
+    number lhs(*this);
+    number rhs(exp);
 
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      exp.m_value,
-      exp.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_pow
     );
@@ -157,10 +170,11 @@ namespace peelo
   number
   number::sqrt(rounding_mode rounding) const
   {
-    number result;
+    number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_sqrt
@@ -174,8 +188,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_cbrt
@@ -188,14 +203,17 @@ namespace peelo
   number::hypot(const number& that, rounding_mode rounding) const
   {
     number result(*this);
+    number rhs(that);
 
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(result),
+      result.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_hypot
     );
@@ -208,8 +226,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_cos
@@ -223,8 +242,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_sin
@@ -238,8 +258,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_tan
@@ -253,8 +274,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_acos
@@ -268,8 +290,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_asin
@@ -283,8 +306,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_atan
@@ -297,14 +321,17 @@ namespace peelo
   number::atan2(const number& that, rounding_mode rounding) const
   {
     number result(*this);
+    number rhs(that);
 
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(result),
+      result.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_atan2
     );
@@ -317,8 +344,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_sinh
@@ -332,8 +360,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_cosh
@@ -347,8 +376,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_tanh
@@ -362,8 +392,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_asinh
@@ -377,8 +408,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_acosh
@@ -392,8 +424,9 @@ namespace peelo
   {
     number result(*this);
 
+    internal::promote_to_mpfr(result, rounding);
     number_utils::unary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
       rounding,
       mpfr_atanh

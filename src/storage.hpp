@@ -24,50 +24,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <cmath>
+#pragma once
+
 #include <cstdint>
+#include <memory>
 
-#include "peelo/number.hpp"
+#include <mpfr.h>
 
-#include "./storage_api.hpp"
-
-namespace peelo
+namespace peelo::internal
 {
-  number&
-  number::assign(const number& that, rounding_mode rounding)
+  enum class storage_kind : uint8_t
   {
-    if (this != &that)
-    {
-      internal::copy_from(*this, that);
-    }
+    small,
+    mpfr,
+  };
 
-    return *this;
-  }
-
-  number&
-  number::assign(double value, const unit_type& unit, rounding_mode rounding)
+  class mpfr_holder
   {
-    if (unit)
-    {
-      internal::destroy(*this);
-      internal::init_mpfr_d(*this, value, unit, rounding);
-    }
-    else if (
-      std::isfinite(value)
-      && value == std::trunc(value)
-      && value >= static_cast<double>(INT64_MIN)
-      && value <= static_cast<double>(INT64_MAX)
-    )
-    {
-      internal::destroy(*this);
-      internal::init_small(*this, static_cast<std::int64_t>(value));
-    }
-    else
-    {
-      internal::destroy(*this);
-      internal::init_mpfr_d(*this, value, unit, rounding);
-    }
+  public:
+    mpfr_t value;
 
-    return *this;
-  }
+    mpfr_holder();
+    mpfr_holder(const mpfr_holder& that);
+    mpfr_holder& operator=(const mpfr_holder& that);
+    ~mpfr_holder();
+  };
+
+  struct number_access;
 }

@@ -26,12 +26,21 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <exception>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include <mpfr.h>
+
+namespace peelo::internal
+{
+  enum class storage_kind : uint8_t;
+  class mpfr_holder;
+  struct number_access;
+}
 
 namespace peelo
 {
@@ -148,6 +157,7 @@ namespace peelo
       }
     };
 
+    /** MPFR value type for numbers stored in MPFR-backed representation. */
     using value_type = mpfr_t;
     using unit_type = std::optional<struct unit>;
     using rounding_mode = mpfr_rnd_t;
@@ -209,6 +219,23 @@ namespace peelo
     number(const number& that);
 
     /**
+     * Move-constructs number from existing instance.
+     */
+    number(number&& that) noexcept;
+
+    /**
+     * Constructs number instance from given integer value and optional
+     * measurement unit.
+     */
+    number(int value, const unit_type& unit = std::nullopt);
+
+    /**
+     * Constructs number instance from given 64-bit integer value and optional
+     * measurement unit.
+     */
+    explicit number(std::int64_t value, const unit_type& unit = std::nullopt);
+
+    /**
      * Constructs number instance from given double precision value and
      * optional measurement unit.
      */
@@ -239,18 +266,12 @@ namespace peelo
     /**
      * Tests whether the number represents infinity.
      */
-    inline bool is_inf() const
-    {
-      return mpfr_inf_p(m_value);
-    }
+    bool is_inf() const;
 
     /**
      * Tests whether the value represents NaN.
      */
-    inline bool is_nan() const
-    {
-      return mpfr_nan_p(m_value);
-    }
+    bool is_nan() const;
 
     /**
      * Converts the number into double precision value.
@@ -276,19 +297,13 @@ namespace peelo
      * Converts the number into boolean. Non-zero booleans are considered to be
      * trutful, while zero is false.
      */
-    inline explicit operator bool() const noexcept
-    {
-      return mpfr_sgn(m_value) != 0;
-    }
+    explicit operator bool() const noexcept;
 
     /**
      * Negates boolean conversion. Returns true if the value is zero, false
      * otherwise.
      */
-    inline bool operator!() const noexcept
-    {
-      return mpfr_sgn(m_value) == 0;
-    }
+    bool operator!() const noexcept;
 
     /**
      * Copies value and measurement of another number into this one.
@@ -314,6 +329,11 @@ namespace peelo
     {
       return assign(that);
     }
+
+    /**
+     * Move-assigns value and measurement unit from another number.
+     */
+    number& operator=(number&& that) noexcept;
 
     /**
      * Copies value of double precision into the number. Measurement unit will
@@ -814,9 +834,11 @@ namespace peelo
     ) const;
 
   private:
-    /** Actual value of the number. */
-    value_type m_value;
-    /** Measurement unit used by the number. */
+    friend struct internal::number_access;
+
+    internal::storage_kind m_storage;
+    std::int64_t m_small;
+    std::unique_ptr<internal::mpfr_holder> m_mpfr;
     unit_type m_unit;
   };
 

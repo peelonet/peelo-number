@@ -24,8 +24,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cstdint>
+
 #include "peelo/number.hpp"
 
+#include "./storage_api.hpp"
 #include "./utils.hpp"
 
 namespace peelo
@@ -33,15 +36,36 @@ namespace peelo
   number
   number::add(const number& that, rounding_mode rounding) const
   {
+    if (
+      internal::is_small(*this)
+      && internal::is_small(that)
+      && !m_unit
+      && !that.m_unit
+    )
+    {
+      std::int64_t result_value;
+
+      if (internal::add_small(m_small, that.m_small, result_value))
+      {
+        return number(result_value);
+      }
+    }
+
     number result;
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
 
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_add
     );
@@ -57,12 +81,16 @@ namespace peelo
   ) const
   {
     number result;
+    number lhs(*this);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
 
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
       value,
       unit,
       rounding,
@@ -75,15 +103,36 @@ namespace peelo
   number
   number::substract(const number& that, rounding_mode rounding) const
   {
+    if (
+      internal::is_small(*this)
+      && internal::is_small(that)
+      && !m_unit
+      && !that.m_unit
+    )
+    {
+      std::int64_t result_value;
+
+      if (internal::sub_small(m_small, that.m_small, result_value))
+      {
+        return number(result_value);
+      }
+    }
+
     number result;
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
 
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_sub
     );
@@ -99,12 +148,16 @@ namespace peelo
   ) const
   {
     number result;
+    number lhs(*this);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
 
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
       value,
       unit,
       rounding,
@@ -117,15 +170,36 @@ namespace peelo
   number
   number::multiply(const number& that, rounding_mode rounding) const
   {
+    if (
+      internal::is_small(*this)
+      && internal::is_small(that)
+      && !m_unit
+      && !that.m_unit
+    )
+    {
+      std::int64_t result_value;
+
+      if (internal::mul_small(m_small, that.m_small, result_value))
+      {
+        return number(result_value);
+      }
+    }
+
     number result;
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
 
     number_utils::multiply_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding
     );
 
@@ -140,12 +214,16 @@ namespace peelo
   ) const
   {
     number result;
+    number lhs(*this);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
 
     number_utils::multiply_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
       value,
       unit,
       rounding
@@ -158,14 +236,20 @@ namespace peelo
   number::divide(const number& that, rounding_mode rounding) const
   {
     number result;
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
 
     number_utils::divide_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding
     );
 
@@ -180,12 +264,16 @@ namespace peelo
   ) const
   {
     number result;
+    number lhs(*this);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
 
     number_utils::divide_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
       value,
       unit,
       rounding
@@ -198,14 +286,20 @@ namespace peelo
   number::modulo(const number& that, rounding_mode rounding) const
   {
     number result;
+    number lhs(*this);
+    number rhs(that);
+
+    internal::promote_to_mpfr(result, rounding);
+    internal::promote_to_mpfr(lhs, rounding);
+    internal::promote_to_mpfr(rhs, rounding);
 
     number_utils::binary_op(
-      result.m_value,
+      internal::mpfr_mut(result),
       result.m_unit,
-      m_value,
-      m_unit,
-      that.m_value,
-      that.m_unit,
+      internal::mpfr_value(lhs),
+      lhs.m_unit,
+      internal::mpfr_value(rhs),
+      rhs.m_unit,
       rounding,
       mpfr_fmod
     );
@@ -216,9 +310,18 @@ namespace peelo
   number
   number::negate(rounding_mode rounding) const
   {
+    if (internal::is_small(*this) && !m_unit)
+    {
+      if (m_small != INT64_MIN)
+      {
+        return number(-m_small);
+      }
+    }
+
     number result(*this);
 
-    mpfr_neg(result.m_value, result.m_value, rounding);
+    internal::promote_to_mpfr(result, rounding);
+    mpfr_neg(internal::mpfr_mut(result), internal::mpfr_value(result), rounding);
 
     return result;
   }
@@ -226,7 +329,23 @@ namespace peelo
   number&
   number::operator++()
   {
-    mpfr_add_si(m_value, m_value, 1, default_rounding_mode);
+    if (internal::is_small(*this) && !m_unit)
+    {
+      std::int64_t result_value;
+
+      if (internal::add_small(m_small, 1, result_value))
+      {
+        m_small = result_value;
+
+        return *this;
+      }
+
+      internal::promote_to_mpfr(*this);
+    }
+
+    auto& value = internal::mpfr_mut(*this);
+
+    mpfr_add_si(value, value, 1, default_rounding_mode);
 
     return *this;
   }
@@ -234,7 +353,23 @@ namespace peelo
   number&
   number::operator--()
   {
-    mpfr_sub_si(m_value, m_value, 1, default_rounding_mode);
+    if (internal::is_small(*this) && !m_unit)
+    {
+      std::int64_t result_value;
+
+      if (internal::sub_small(m_small, 1, result_value))
+      {
+        m_small = result_value;
+
+        return *this;
+      }
+
+      internal::promote_to_mpfr(*this);
+    }
+
+    auto& value = internal::mpfr_mut(*this);
+
+    mpfr_sub_si(value, value, 1, default_rounding_mode);
 
     return *this;
   }
@@ -244,7 +379,7 @@ namespace peelo
   {
     number copy(*this);
 
-    mpfr_add_si(m_value, m_value, 1, default_rounding_mode);
+    operator++();
 
     return copy;
   }
@@ -254,7 +389,7 @@ namespace peelo
   {
     number copy(*this);
 
-    mpfr_sub_si(m_value, m_value, 1, default_rounding_mode);
+    operator--();
 
     return copy;
   }
