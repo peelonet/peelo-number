@@ -22,6 +22,25 @@
 
  @licend  The above is the entire license notice for the JavaScript code in this file
 */
-var menudata={children:[
-{text:"Main Page",url:"index.html"},
-{text:"Related Pages",url:"pages.html"}]}
+var NAVTREE =
+[
+  [ "My Project", "index.html", [
+    [ "LICENSE", "md_LICENSE.html", null ],
+    [ "peelo-number", "md_README.html", [
+      [ "WebAssembly", "md_README.html#autotoc_md1", [
+        [ "Build", "md_README.html#autotoc_md2", null ],
+        [ "Use as a dependency", "md_README.html#autotoc_md3", null ],
+        [ "Example consumer", "md_README.html#autotoc_md4", null ]
+      ] ]
+    ] ]
+  ] ]
+];
+
+var NAVTREEINDEX =
+[
+"index.html"
+];
+
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';
