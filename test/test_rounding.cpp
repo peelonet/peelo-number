@@ -33,15 +33,25 @@ using number = peelo::number;
 TEST_CASE("ceil()")
 {
   REQUIRE(number(1.4).ceil().equals(2.0));
+  REQUIRE(number(15.591).ceil(2).equals(15.6));
+  REQUIRE(number(-15.591).ceil(2).equals(-15.59));
 }
 
 TEST_CASE("floor()")
 {
   REQUIRE(number(1.4).floor().equals(1.0));
+  REQUIRE(number(15.591).floor(2).equals(15.59));
+  REQUIRE(number(-15.591).floor(2).equals(-15.6));
 }
 
 TEST_CASE("round()")
 {
   REQUIRE(number(1.4).round().equals(1.0));
   REQUIRE(number(1.6).round().equals(2.0));
+  REQUIRE(number(15.591).round(2).equals(15.59));
+  REQUIRE(number(15.595).round(2).equals(15.6));
+  REQUIRE(number(15.594).round(2).equals(15.59));
+  REQUIRE(number(-15.595).round(2).equals(-15.6));
+  REQUIRE(number(123.456).round(0).equals(123.0));
+  REQUIRE(number(123.456).round(1).equals(123.5));
 }

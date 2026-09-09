@@ -767,20 +767,31 @@ namespace peelo
     // Rounding.
 
     /**
-     * Rounds the number to the next higher or equal representable integer.
+     * Rounds the number toward positive infinity to the given number of decimal
+     * places.
      */
-    number ceil() const;
+    number ceil(
+      int decimal_places = 0,
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
     /**
-     * Rounds the number to the next lower or equal representable integer.
+     * Rounds the number toward negative infinity to the given number of decimal
+     * places.
      */
-    number floor() const;
+    number floor(
+      int decimal_places = 0,
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
     /**
-     * Rounds the number to the nearest representable integer, rounding halfway
-     * cases away from zero.
+     * Rounds the number to the nearest representable value at the given number
+     * of decimal places.
      */
-    number round() const;
+    number round(
+      int decimal_places = 0,
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
     // Exponential functions.
     number exp(rounding_mode rounding = default_rounding_mode) const;

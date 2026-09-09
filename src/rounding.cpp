@@ -31,56 +31,138 @@
 
 namespace peelo
 {
-  using rounding_op_callback = int(*)(mpfr_t, mpfr_srcptr);
+  using directed_rounding_op_callback = int(*)(mpfr_t, mpfr_srcptr);
 
   static void
-  rounding_op(
+  normalize_unit_after_rounding(
     number::value_type value,
     number::unit_type& unit,
-    rounding_op_callback callback
+    number::rounding_mode rounding
   )
   {
-    callback(value, value);
     if (unit)
     {
       number_utils::normalize_unit(
         value,
         unit,
         number::unit::base_unit_of(unit->type),
-        number::default_rounding_mode
+        rounding
       );
     }
   }
 
+  static void
+  directed_rounding_to_decimal_places(
+    number::value_type value,
+    number::unit_type& unit,
+    int decimal_places,
+    number::rounding_mode rounding,
+    directed_rounding_op_callback callback
+  )
+  {
+    if (decimal_places == 0)
+    {
+      callback(value, value);
+      normalize_unit_after_rounding(value, unit, rounding);
+      return;
+    }
+
+    mpfr_t scale;
+    mpfr_init(scale);
+    mpfr_set_ui(scale, 10, rounding);
+    mpfr_pow_si(scale, scale, decimal_places, rounding);
+
+    mpfr_mul(value, value, scale, rounding);
+    callback(value, value);
+    mpfr_div(value, value, scale, rounding);
+
+    mpfr_clear(scale);
+    normalize_unit_after_rounding(value, unit, rounding);
+  }
+
+  static void
+  round_to_decimal_places(
+    number::value_type value,
+    number::unit_type& unit,
+    int decimal_places,
+    number::rounding_mode rounding
+  )
+  {
+    if (decimal_places == 0)
+    {
+      mpfr_rint(value, value, rounding);
+      normalize_unit_after_rounding(value, unit, rounding);
+      return;
+    }
+
+    mpfr_t scale;
+    mpfr_init(scale);
+    mpfr_set_ui(scale, 10, rounding);
+    mpfr_pow_si(scale, scale, decimal_places, rounding);
+
+    mpfr_mul(value, value, scale, rounding);
+    mpfr_rint(value, value, rounding);
+    mpfr_div(value, value, scale, rounding);
+
+    mpfr_clear(scale);
+    normalize_unit_after_rounding(value, unit, rounding);
+  }
+
   number
-  number::ceil() const
+  number::ceil(
+    int decimal_places,
+    rounding_mode rounding
+  ) const
   {
     number result(*this);
 
-    internal::promote_to_mpfr(result);
-    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_ceil);
+    internal::promote_to_mpfr(result, rounding);
+    directed_rounding_to_decimal_places(
+      internal::mpfr_mut(result),
+      result.m_unit,
+      decimal_places,
+      rounding,
+      mpfr_ceil
+    );
 
     return result;
   }
 
   number
-  number::floor() const
+  number::floor(
+    int decimal_places,
+    rounding_mode rounding
+  ) const
   {
     number result(*this);
 
-    internal::promote_to_mpfr(result);
-    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_floor);
+    internal::promote_to_mpfr(result, rounding);
+    directed_rounding_to_decimal_places(
+      internal::mpfr_mut(result),
+      result.m_unit,
+      decimal_places,
+      rounding,
+      mpfr_floor
+    );
 
     return result;
   }
 
   number
-  number::round() const
+  number::round(
+    int decimal_places,
+    rounding_mode rounding
+  ) const
   {
     number result(*this);
 
-    internal::promote_to_mpfr(result);
-    rounding_op(internal::mpfr_mut(result), result.m_unit, mpfr_round);
+    internal::promote_to_mpfr(result, rounding);
+    round_to_decimal_places(
+      internal::mpfr_mut(result),
+      result.m_unit,
+      decimal_places,
+      rounding
+    );
 
     return result;
   }
