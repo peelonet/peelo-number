@@ -2,14 +2,33 @@ name: build
 
 on: [push]
 
+env:
+  CATCH2_VERSION: v3.7.1
+  WASM_GMP_VERSION: 6.3.0
+  WASM_MPFR_VERSION: 4.2.2
+
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.apt-cache
+          key: apt-${{ runner.os }}-mpfr
+          restore-keys: apt-${{ runner.os }}-
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
+          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
-        run: sudo apt install -y libmpfr6 libmpfr-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get -o dir::cache::archives="$HOME/.apt-cache" install -y --no-install-recommends libmpfr6 libmpfr-dev
       - name: Build
         uses: threeal/cmake-action@v2.1.0
       - name: Test
@@ -22,6 +41,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: brew-${{ runner.os }}-mpfr
+          restore-keys: brew-${{ runner.os }}-
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
+          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         run: brew install mpfr
       - name: Export homebrew paths
@@ -38,6 +69,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
+          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         uses: msys2/setup-msys2@v2
         with:
@@ -62,19 +99,40 @@ jobs:
 
   build-windows-msvc:
     runs-on: windows-latest
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-windows-static
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Setup vcpkg
+      - name: Cache vcpkg tool
+        uses: actions/cache@v4
+        id: vcpkg-tool-cache
+        with:
+          path: C:\vcpkg
+          key: vcpkg-tool-${{ runner.os }}
+          restore-keys: vcpkg-tool-${{ runner.os }}
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_installed
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
+          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
+      - name: Bootstrap vcpkg
+        if: steps.vcpkg-tool-cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
       - name: Build
         run: |
           cmake -B build -S . `
             -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static
+            -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}
           cmake --build build --config Release
       - name: Test
         run: |
@@ -85,16 +143,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install Emscripten
-        run: |
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
-          /opt/emsdk/emsdk install latest
-          /opt/emsdk/emsdk activate latest
+      - name: Cache Emscripten SDK
+        uses: actions/cache@v4
+        id: emsdk-cache
+        with:
+          path: /opt/emsdk
+          key: emsdk-${{ runner.os }}-latest
+          restore-keys: emsdk-${{ runner.os }}-
       - name: Cache WebAssembly dependencies
         uses: actions/cache@v4
         with:
           path: wasm-deps
-          key: wasm-deps-gmp-6.3.0-mpfr-4.2.2-emscripten-latest
+          key: wasm-deps-gmp-${{ env.WASM_GMP_VERSION }}-mpfr-${{ env.WASM_MPFR_VERSION }}-emscripten-latest
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build-wasm/_deps
+          key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-emscripten
+          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
+      - name: Install Emscripten
+        if: steps.emsdk-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
+          /opt/emsdk/emsdk install latest
+          /opt/emsdk/emsdk activate latest
       - name: Build WebAssembly
         run: |
           source /opt/emsdk/emsdk_env.sh
