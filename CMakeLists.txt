@@ -45,7 +45,7 @@ if(MSVC)
   target_compile_options(
     PeeloNumber
     PRIVATE
-      /W4 /WX
+      /W4 /WX /wd4244 /wd4146 /wd4100
   )
 else()
   target_compile_options(

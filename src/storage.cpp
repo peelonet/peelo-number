@@ -245,9 +245,21 @@ namespace peelo::internal
   bool
   number_access::add_small(std::int64_t a, std::int64_t b, std::int64_t& out)
   {
-#if defined(__has_builtin) && __has_builtin(__builtin_add_overflow)
+#if defined(__has_builtin)
+#  if __has_builtin(__builtin_add_overflow)
     return !__builtin_add_overflow(a, b, &out);
-#else
+#  endif
+#endif
+#if defined(_MSC_VER)
+    if ((b > 0 && a > INT64_MAX - b) || (b < 0 && a < INT64_MIN - b))
+    {
+      return false;
+    }
+
+    out = a + b;
+
+    return true;
+#elif defined(__SIZEOF_INT128__)
     const __int128 result = static_cast<__int128>(a) + static_cast<__int128>(b);
 
     if (result < INT64_MIN || result > INT64_MAX)
@@ -258,15 +270,29 @@ namespace peelo::internal
     out = static_cast<std::int64_t>(result);
 
     return true;
+#else
+#error "No overflow checking implementation available"
 #endif
   }
 
   bool
   number_access::sub_small(std::int64_t a, std::int64_t b, std::int64_t& out)
   {
-#if defined(__has_builtin) && __has_builtin(__builtin_sub_overflow)
+#if defined(__has_builtin)
+#  if __has_builtin(__builtin_sub_overflow)
     return !__builtin_sub_overflow(a, b, &out);
-#else
+#  endif
+#endif
+#if defined(_MSC_VER)
+    if ((b < 0 && a > INT64_MAX + b) || (b > 0 && a < INT64_MIN + b))
+    {
+      return false;
+    }
+
+    out = a - b;
+
+    return true;
+#elif defined(__SIZEOF_INT128__)
     const __int128 result = static_cast<__int128>(a) - static_cast<__int128>(b);
 
     if (result < INT64_MIN || result > INT64_MAX)
@@ -277,15 +303,44 @@ namespace peelo::internal
     out = static_cast<std::int64_t>(result);
 
     return true;
+#else
+#error "No overflow checking implementation available"
 #endif
   }
 
   bool
   number_access::mul_small(std::int64_t a, std::int64_t b, std::int64_t& out)
   {
-#if defined(__has_builtin) && __has_builtin(__builtin_mul_overflow)
+#if defined(__has_builtin)
+#  if __has_builtin(__builtin_mul_overflow)
     return !__builtin_mul_overflow(a, b, &out);
-#else
+#  endif
+#endif
+#if defined(_MSC_VER)
+    if (a == INT64_MIN && b == -1)
+    {
+      return false;
+    }
+
+    if (a > 0)
+    {
+      if (b > 0 ? a > INT64_MAX / b : b < INT64_MIN / a)
+      {
+        return false;
+      }
+    }
+    else if (a < 0)
+    {
+      if (b > 0 ? a < INT64_MIN / b : a < INT64_MAX / b)
+      {
+        return false;
+      }
+    }
+
+    out = a * b;
+
+    return true;
+#elif defined(__SIZEOF_INT128__)
     const __int128 result = static_cast<__int128>(a) * static_cast<__int128>(b);
 
     if (result < INT64_MIN || result > INT64_MAX)
@@ -296,6 +351,8 @@ namespace peelo::internal
     out = static_cast<std::int64_t>(result);
 
     return true;
+#else
+#error "No overflow checking implementation available"
 #endif
   }
 
