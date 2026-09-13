@@ -33,7 +33,7 @@ jobs:
         with:
           verbose: true
 
-  build-windows:
+  build-windows-mingw:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -59,6 +59,26 @@ jobs:
         shell: msys2 {0}
         run: |
           ctest --test-dir 'build' --output-on-failure --no-tests=error --verbose
+
+  build-windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+      - name: Build
+        run: |
+          cmake -B build -S . `
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static
+          cmake --build build --config Release
+      - name: Test
+        run: |
+          ctest --test-dir build -C Release --output-on-failure --no-tests=error --verbose
 
   build-wasm:
     runs-on: ubuntu-latest
