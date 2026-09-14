@@ -27,6 +27,7 @@ jobs:
           restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         run: |
+          mkdir -p ~/.apt-cache/partial
           sudo apt-get update
           sudo apt-get -o dir::cache::archives="$HOME/.apt-cache" install -y --no-install-recommends libmpfr6 libmpfr-dev
       - name: Build
@@ -102,6 +103,8 @@ jobs:
     env:
       VCPKG_ROOT: C:\vcpkg
       VCPKG_DEFAULT_TRIPLET: x64-windows-static
+      VCPKG_BUILD_TYPE: release
+      VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -116,7 +119,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vcpkg_installed
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ env.VCPKG_BUILD_TYPE }}
       - name: Cache CMake dependencies
         uses: actions/cache@v4
         with:
