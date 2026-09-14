@@ -24,7 +24,6 @@ jobs:
         with:
           path: build/_deps
           key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
-          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         run: |
           mkdir -p ~/.apt-cache/partial
@@ -53,7 +52,6 @@ jobs:
         with:
           path: build/_deps
           key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
-          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         run: brew install mpfr
       - name: Export homebrew paths
@@ -75,7 +73,6 @@ jobs:
         with:
           path: build/_deps
           key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
-          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install MPFR
         uses: msys2/setup-msys2@v2
         with:
@@ -125,7 +122,6 @@ jobs:
         with:
           path: build/_deps
           key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-${{ runner.os }}
-          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Bootstrap vcpkg
         if: steps.vcpkg-tool-cache.outputs.cache-hit != 'true'
         run: |
@@ -163,7 +159,6 @@ jobs:
         with:
           path: build-wasm/_deps
           key: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-emscripten
-          restore-keys: cmake-deps-catch2-${{ env.CATCH2_VERSION }}-
       - name: Install Emscripten
         if: steps.emsdk-cache.outputs.cache-hit != 'true'
         run: |
