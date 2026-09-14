@@ -27,7 +27,7 @@ build_gmp() {
   local source_dir="${SOURCES_DIR}/gmp-${GMP_VERSION}"
 
   if [[ ! -d "${source_dir}" ]]; then
-    curl -L "https://gmplib.org/download/gmp/${archive}" -o "${SOURCES_DIR}/${archive}"
+    curl -L "https://ftp.gnu.org/gnu/gmp/${archive}" -o "${SOURCES_DIR}/${archive}"
     tar -xJf "${SOURCES_DIR}/${archive}" -C "${SOURCES_DIR}"
   fi
 
@@ -49,7 +49,7 @@ build_mpfr() {
   local source_dir="${SOURCES_DIR}/mpfr-${MPFR_VERSION}"
 
   if [[ ! -d "${source_dir}" ]]; then
-    curl -L "https://www.mpfr.org/mpfr-current/${archive}" -o "${SOURCES_DIR}/${archive}"
+    curl -L "https://ftp.gnu.org/gnu/mpfr/${archive}" -o "${SOURCES_DIR}/${archive}"
     tar -xJf "${SOURCES_DIR}/${archive}" -C "${SOURCES_DIR}"
   fi
 
