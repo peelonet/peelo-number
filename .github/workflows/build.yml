@@ -97,10 +97,12 @@ jobs:
 
   build-windows-msvc:
     runs-on: windows-latest
+    timeout-minutes: 45
     env:
       VCPKG_ROOT: C:\vcpkg
-      VCPKG_DEFAULT_TRIPLET: x64-windows-static
-      VCPKG_BUILD_TYPE: release
+      # Release-only triplet: the default x64-windows-static builds both -dbg and
+      # -rel ports. MPFR's MSYS2 autotools configure step often hangs on -dbg in CI.
+      VCPKG_DEFAULT_TRIPLET: x64-windows-static-release
       VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     steps:
       - name: Checkout
@@ -116,7 +118,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vcpkg_installed
-          key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ env.VCPKG_BUILD_TYPE }}
+          key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
       - name: Cache CMake dependencies
         uses: actions/cache@v4
         with:
@@ -131,7 +133,8 @@ jobs:
         run: |
           cmake -B build -S . `
             -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
-            -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}
+            -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }} `
+            -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
       - name: Test
         run: |
