@@ -24,7 +24,7 @@ foreach(TEST_FILENAME ${TEST_SOURCES})
   target_compile_features(
     ${TEST_NAME}
     PUBLIC
-      cxx_std_17
+      cxx_std_20
   )
   target_link_libraries(
     ${TEST_NAME}

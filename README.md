@@ -2,7 +2,7 @@
 
 ![build](https://github.com/peelonet/peelo-number/workflows/build/badge.svg)
 
-[C++17] library that implements multiple-precision floating-point decimals with
+[C++20] library that implements multiple-precision floating-point decimals with
 measurement unit support using [GNU MPFR] library.
 
 [Doxygen generated API documentation](https://peelonet.github.io/peelo-number/)
@@ -79,7 +79,7 @@ Expected output:
 1km + 500m = 1.5km
 ```
 
-[C++17]: https://en.cppreference.com/w/cpp/17
+[C++20]: https://en.cppreference.com/w/cpp/20
 [Emscripten]: https://emscripten.org/
 [Emscripten SDK]: https://emscripten.org/docs/getting-started/downloads.html
 [GNU MPFR]: https://www.mpfr.org/

@@ -22,7 +22,7 @@ target_link_libraries(
 target_compile_features(
   example
   PRIVATE
-    cxx_std_17
+    cxx_std_20
 )
 
 if(EMSCRIPTEN)

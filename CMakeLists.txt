@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.14)
 
 project(
   PeeloNumber
   VERSION 5.1.2
-  DESCRIPTION "C++17 wrapper for GNU MPFR with measurement units"
+  DESCRIPTION "C++20 wrapper for GNU MPFR with measurement units"
   HOMEPAGE_URL "https://github.com/peelonet/peelo-number"
   LANGUAGES CXX
 )
@@ -57,8 +57,8 @@ endif()
 
 target_compile_features(
   PeeloNumber
-  PRIVATE
-    cxx_std_17
+  PUBLIC
+    cxx_std_20
 )
 
 if(EMSCRIPTEN)
