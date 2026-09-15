@@ -21,7 +21,7 @@
   <td id="projectalign">
    <div id="projectname">peelo-number
    </div>
-   <div id="projectbrief">C++17 wrapper for MPFR with measurement unit support</div>
+   <div id="projectbrief">C++20 wrapper for MPFR with measurement unit support</div>
   </td>
  </tr>
  </tbody>
@@ -71,12 +71,13 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a443fbe3a017cc5d7ff3504b057262c17" id="r_a443fbe3a017cc5d7ff3504b057262c17"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a443fbe3a017cc5d7ff3504b057262c17">is_base_unit</a> () const</td></tr>
 <tr class="memitem:a1244f35687f2e53cc97f577d388efc71" id="r_a1244f35687f2e53cc97f577d388efc71"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1244f35687f2e53cc97f577d388efc71">equals</a> (const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;that) const</td></tr>
+<tr class="memitem:af360d5ada8a72ab781d6fa733974b01d" id="r_af360d5ada8a72ab781d6fa733974b01d"><td class="memItemLeft" align="right" valign="top">std::strong_ordering&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af360d5ada8a72ab781d6fa733974b01d">operator&lt;=&gt;</a> (const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;that) const</td></tr>
 <tr class="memitem:a584f5b892719ac415e373bf90baec460" id="r_a584f5b892719ac415e373bf90baec460"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a584f5b892719ac415e373bf90baec460">operator==</a> (const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;that) const</td></tr>
 <tr class="memitem:a11bd4828b6ebdb861e832dcd6cc4c145" id="r_a11bd4828b6ebdb861e832dcd6cc4c145"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a11bd4828b6ebdb861e832dcd6cc4c145">operator!=</a> (const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;that) const</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a6727b9b1380c1152d41eb0212e1c7a06" id="r_a6727b9b1380c1152d41eb0212e1c7a06"><td class="memItemLeft" align="right" valign="top">static std::optional&lt; <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6727b9b1380c1152d41eb0212e1c7a06">find_by_symbol</a> (const std::string &amp;<a class="el" href="#ab85b8ecccb094fbdcedb072bcc0e566a">symbol</a>)</td></tr>
+<tr class="memitem:ad7360c16b5fa7cf1c2d6022b6d14cec0" id="r_ad7360c16b5fa7cf1c2d6022b6d14cec0"><td class="memItemLeft" align="right" valign="top">static std::optional&lt; <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7360c16b5fa7cf1c2d6022b6d14cec0">find_by_symbol</a> (std::string_view <a class="el" href="#ab85b8ecccb094fbdcedb072bcc0e566a">symbol</a>)</td></tr>
 <tr class="memitem:a7ff9f81c5aca5c05dfcd76116aa9e076" id="r_a7ff9f81c5aca5c05dfcd76116aa9e076"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ff9f81c5aca5c05dfcd76116aa9e076">base_unit_of</a> (enum <a class="el" href="#a6526796afc2c81dd922fc9aed6ba787e">type</a> <a class="el" href="#a6526796afc2c81dd922fc9aed6ba787e">type</a>)</td></tr>
 <tr class="memitem:a4d1687a777e53820c83a6531d282c38a" id="r_a4d1687a777e53820c83a6531d282c38a"><td class="memItemLeft" align="right" valign="top">static const std::vector&lt; <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4d1687a777e53820c83a6531d282c38a">all_units_of</a> (enum <a class="el" href="#a6526796afc2c81dd922fc9aed6ba787e">type</a> <a class="el" href="#a6526796afc2c81dd922fc9aed6ba787e">type</a>)</td></tr>
 </table><table class="memberdecls">
@@ -203,7 +204,7 @@ Static Public Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -211,8 +212,8 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a6727b9b1380c1152d41eb0212e1c7a06" name="a6727b9b1380c1152d41eb0212e1c7a06"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6727b9b1380c1152d41eb0212e1c7a06">&#9670;&#160;</a></span>find_by_symbol()</h2>
+<a id="ad7360c16b5fa7cf1c2d6022b6d14cec0" name="ad7360c16b5fa7cf1c2d6022b6d14cec0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7360c16b5fa7cf1c2d6022b6d14cec0">&#9670;&#160;</a></span>find_by_symbol()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -223,13 +224,13 @@ Static Public Attributes</h2></td></tr>
         <tr>
           <td class="memname">std::optional&lt; <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &gt; peelo::number::unit::find_by_symbol </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>symbol</em></span></td><td>)</td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>symbol</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -281,11 +282,37 @@ Static Public Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 <p>Non-equality testing operator. </p>
+
+</div>
+</div>
+<a id="af360d5ada8a72ab781d6fa733974b01d" name="af360d5ada8a72ab781d6fa733974b01d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af360d5ada8a72ab781d6fa733974b01d">&#9670;&#160;</a></span>operator&lt;=&gt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::strong_ordering peelo::number::unit::operator&lt;=&gt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structpeelo_1_1number_1_1unit.html">unit</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>that</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Three-way comparison operator. </p>
 
 </div>
 </div>
@@ -307,7 +334,7 @@ Static Public Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
