@@ -103,3 +103,22 @@ TEST_CASE("Comparison operators")
   REQUIRE(number(1.0) <= 2.0);
   REQUIRE(number(2.0) >= 1.0);
 }
+
+TEST_CASE("Three-way comparison operators")
+{
+  REQUIRE((number(1.0) <=> number(1.0)) == 0);
+  REQUIRE((number(1.0) <=> number(2.0)) < 0);
+  REQUIRE((number(2.0) <=> number(1.0)) > 0);
+  REQUIRE(
+    (number(1.0, unit::meter) <=> number(1.0, unit::kilometer)) < 0
+  );
+
+  REQUIRE((number(1.0) <=> 1.0) == 0);
+  REQUIRE((number(1.0) <=> 2.0) < 0);
+  REQUIRE((number(2.0) <=> 1.0) > 0);
+
+  REQUIRE((unit::meter <=> unit::meter) == 0);
+  REQUIRE((unit::meter <=> unit::kilometer) < 0);
+  REQUIRE((unit::kilometer <=> unit::meter) > 0);
+  REQUIRE((unit::meter <=> unit::gram) != 0);
+}

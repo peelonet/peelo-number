@@ -26,6 +26,7 @@
  */
 #pragma once
 
+#include <compare>
 #include <cstdint>
 #include <exception>
 #include <memory>
@@ -113,7 +114,9 @@ namespace peelo
       /**
        * Searches for measurement unit based on it's symbol.
        */
-      static std::optional<unit> find_by_symbol(std::string_view symbol);
+      [[nodiscard]] static std::optional<unit> find_by_symbol(
+        std::string_view symbol
+      );
 
       /**
        * Determines base unit of given type.
@@ -136,15 +139,29 @@ namespace peelo
       /**
        * Tests whether two measurement units are equal.
        */
-      inline bool equals(const unit& that) const
+      [[nodiscard]] inline bool equals(const unit& that) const
       {
         return type == that.type && multiplier == that.multiplier;
       }
 
       /**
+       * Three-way comparison operator.
+       */
+      [[nodiscard]] inline std::strong_ordering operator<=>(const unit& that)
+        const
+      {
+        if (auto ordering = type <=> that.type; ordering != 0)
+        {
+          return ordering;
+        }
+
+        return multiplier <=> that.multiplier;
+      }
+
+      /**
        * Equality testing operator.
        */
-      inline bool operator==(const unit& that) const
+      [[nodiscard]] inline bool operator==(const unit& that) const
       {
         return equals(that);
       }
@@ -152,7 +169,7 @@ namespace peelo
       /**
        * Non-equality testing operator.
        */
-      inline bool operator!=(const unit& that) const
+      [[nodiscard]] inline bool operator!=(const unit& that) const
       {
         return !equals(that);
       }
@@ -168,12 +185,15 @@ namespace peelo
     /**
      * Tests whether given string contains valid number.
      */
-    static bool is_valid(std::string_view input, int base = 10);
+    [[nodiscard]] static bool is_valid(std::string_view input, int base = 10);
 
     /**
      * Tests whether given Unicode string contains valid number.
      */
-    static bool is_valid(const std::u32string& input, int base = 10);
+    [[nodiscard]] static bool is_valid(
+      const std::u32string& input,
+      int base = 10
+    );
 
     /**
      * Parses given string into number.
@@ -181,7 +201,7 @@ namespace peelo
      * \throws std::invalid_argument If the input does not contain a number or
      *                               has unrecognized measurement unit symbol.
      */
-    static number parse(
+    [[nodiscard]] static number parse(
       std::string_view input,
       int base = 10,
       rounding_mode rounding = default_rounding_mode
@@ -193,7 +213,7 @@ namespace peelo
      * \throws std::invalid_argument If the input does not contain a number or
      *                               has unrecognized measurement unit symbol.
      */
-    static number parse(
+    [[nodiscard]] static number parse(
       const std::u32string& input,
       int base = 10,
       rounding_mode rounding = default_rounding_mode
@@ -202,12 +222,12 @@ namespace peelo
     /**
      * Constructs number representing infinity.
      */
-    static number inf(const unit_type& unit = std::nullopt);
+    [[nodiscard]] static number inf(const unit_type& unit = std::nullopt);
 
     /**
      * Constructs number representing NaN.
      */
-    static number nan(const unit_type& unit = std::nullopt);
+    [[nodiscard]] static number nan(const unit_type& unit = std::nullopt);
 
     /**
      * Constructs zero with given optional measurement unit.
@@ -262,17 +282,17 @@ namespace peelo
     /**
      * Constructs copy of the number without measurement unit.
      */
-    number without_measurement_unit() const;
+    [[nodiscard]] number without_measurement_unit() const;
 
     /**
      * Tests whether the number represents infinity.
      */
-    bool is_inf() const;
+    [[nodiscard]] bool is_inf() const;
 
     /**
      * Tests whether the value represents NaN.
      */
-    bool is_nan() const;
+    [[nodiscard]] bool is_nan() const;
 
     /**
      * Converts the number into double precision value.
@@ -349,7 +369,7 @@ namespace peelo
      * Tests whether two number instances are equal, with the same value and
      * measurement unit (or lack thereof).
      */
-    bool equals(
+    [[nodiscard]] bool equals(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const noexcept;
@@ -358,7 +378,7 @@ namespace peelo
      * Tests whether number is equal with given double precision value, with
      * the same measurement unit (or lack thereof).
      */
-    bool equals(
+    [[nodiscard]] bool equals(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
@@ -367,7 +387,7 @@ namespace peelo
     /**
      * Equality testing operator.
      */
-    inline bool operator==(const number& that) const noexcept
+    [[nodiscard]] inline bool operator==(const number& that) const noexcept
     {
       return equals(that);
     }
@@ -375,7 +395,7 @@ namespace peelo
     /**
      * Equality testing operator.
      */
-    inline bool operator==(double value) const noexcept
+    [[nodiscard]] inline bool operator==(double value) const noexcept
     {
       return equals(value);
     }
@@ -383,7 +403,7 @@ namespace peelo
     /**
      * Non-equality testing operator.
      */
-    inline bool operator!=(const number& that) const noexcept
+    [[nodiscard]] inline bool operator!=(const number& that) const noexcept
     {
       return !equals(that);
     }
@@ -391,7 +411,7 @@ namespace peelo
     /**
      * Non-equality testing operator.
      */
-    inline bool operator!=(double value) const noexcept
+    [[nodiscard]] inline bool operator!=(double value) const noexcept
     {
       return !equals(value);
     }
@@ -401,7 +421,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    int compare(
+    [[nodiscard]] int compare(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -411,74 +431,31 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    int compare(
+    [[nodiscard]] int compare(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
     ) const;
 
     /**
-     * Less-than testing operator.
+     * Three-way comparison operator.
+     *
+     * \throws unit_error If measurement units are not compatible.
      */
-    inline bool operator<(const number& that) const
+    [[nodiscard]] inline std::strong_ordering operator<=>(const number& that)
+      const
     {
-      return compare(that) < 0;
+      return compare(that) <=> 0;
     }
 
     /**
-     * Less-than testing operator.
+     * Three-way comparison operator.
+     *
+     * \throws unit_error If measurement units are not compatible.
      */
-    inline bool operator<(double value) const
+    [[nodiscard]] inline std::strong_ordering operator<=>(double value) const
     {
-      return compare(value) < 0;
-    }
-
-    /**
-     * Greater-than testing operator.
-     */
-    inline bool operator>(const number& that) const
-    {
-      return compare(that) > 0;
-    }
-
-    /**
-     * Greater-than testing operator.
-     */
-    inline bool operator>(double value) const
-    {
-      return compare(value) > 0;
-    }
-
-    /**
-     * Less-than-or-equal testing operator.
-     */
-    inline bool operator<=(const number& that) const
-    {
-      return compare(that) <= 0;
-    }
-
-    /**
-     * Less-than-or-equal testing operator.
-     */
-    inline bool operator<=(double value) const
-    {
-      return compare(value) <= 0;
-    }
-
-    /**
-     * Greater-than-or-equal testing operator.
-     */
-    inline bool operator>=(const number& that) const
-    {
-      return compare(that) >= 0;
-    }
-
-    /**
-     * Gerater-than-or-equal testing operator.
-     */
-    inline bool operator>=(double value) const
-    {
-      return compare(value) >= 0;
+      return compare(value) <=> 0;
     }
 
     /**
@@ -486,7 +463,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number add(
+    [[nodiscard]] number add(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -496,7 +473,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number add(
+    [[nodiscard]] number add(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
@@ -507,7 +484,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    inline number operator+(const number& that) const
+    [[nodiscard]] inline number operator+(const number& that) const
     {
       return add(that);
     }
@@ -517,7 +494,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    inline number operator+(double value) const
+    [[nodiscard]] inline number operator+(double value) const
     {
       return add(value);
     }
@@ -547,7 +524,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number substract(
+    [[nodiscard]] number substract(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -557,7 +534,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number substract(
+    [[nodiscard]] number substract(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
@@ -568,7 +545,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    inline number operator-(const number& that) const
+    [[nodiscard]] inline number operator-(const number& that) const
     {
       return substract(that);
     }
@@ -576,7 +553,7 @@ namespace peelo
     /**
      * Substraction operator.
      */
-    inline number operator-(double value) const
+    [[nodiscard]] inline number operator-(double value) const
     {
       return substract(value);
     }
@@ -602,7 +579,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number multiply(
+    [[nodiscard]] number multiply(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -612,7 +589,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number multiply(
+    [[nodiscard]] number multiply(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
@@ -623,7 +600,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    inline number operator*(const number& that) const
+    [[nodiscard]] inline number operator*(const number& that) const
     {
       return multiply(that);
     }
@@ -631,7 +608,7 @@ namespace peelo
     /**
      * Multiplication operator.
      */
-    inline number operator*(double value) const
+    [[nodiscard]] inline number operator*(double value) const
     {
       return multiply(value);
     }
@@ -657,7 +634,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number divide(
+    [[nodiscard]] number divide(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -667,7 +644,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    number divide(
+    [[nodiscard]] number divide(
       double value,
       const unit_type& unit = std::nullopt,
       rounding_mode rounding = default_rounding_mode
@@ -678,7 +655,7 @@ namespace peelo
      *
      * \throws unit_error If measurement units are not compatible.
      */
-    inline number operator/(const number& that) const
+    [[nodiscard]] inline number operator/(const number& that) const
     {
       return divide(that);
     }
@@ -686,7 +663,7 @@ namespace peelo
     /**
      * Division operator.
      */
-    inline number operator/(double value) const
+    [[nodiscard]] inline number operator/(double value) const
     {
       return divide(value);
     }
@@ -711,7 +688,7 @@ namespace peelo
      * Computes the floating-point remainder between this number and the other
      * one and returns result.
      */
-    number modulo(
+    [[nodiscard]] number modulo(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -719,7 +696,7 @@ namespace peelo
     /**
      * Modulo operator.
      */
-    inline number operator%(const number& that) const
+    [[nodiscard]] inline number operator%(const number& that) const
     {
       return modulo(that);
     }
@@ -735,12 +712,14 @@ namespace peelo
     /**
      * Negates sign of the number and returns result.
      */
-    number negate(rounding_mode rounding = default_rounding_mode) const;
+    [[nodiscard]] number negate(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
     /**
      * Negation operator.
      */
-    inline number operator-() const
+    [[nodiscard]] inline number operator-() const
     {
       return negate();
     }
@@ -758,12 +737,12 @@ namespace peelo
     /**
      * Postfix incrementation operator.
      */
-    number operator++(int);
+    [[nodiscard]] number operator++(int);
 
     /**
      * Postfix decrementation operator.
      */
-    number operator--(int);
+    [[nodiscard]] number operator--(int);
 
     // Rounding.
 
@@ -771,7 +750,7 @@ namespace peelo
      * Rounds the number toward positive infinity to the given number of decimal
      * places.
      */
-    number ceil(
+    [[nodiscard]] number ceil(
       int decimal_places = 0,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -780,7 +759,7 @@ namespace peelo
      * Rounds the number toward negative infinity to the given number of decimal
      * places.
      */
-    number floor(
+    [[nodiscard]] number floor(
       int decimal_places = 0,
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -789,58 +768,100 @@ namespace peelo
      * Rounds the number to the nearest representable value at the given number
      * of decimal places.
      */
-    number round(
+    [[nodiscard]] number round(
       int decimal_places = 0,
       rounding_mode rounding = default_rounding_mode
     ) const;
 
     // Exponential functions.
-    number exp(rounding_mode rounding = default_rounding_mode) const;
-    number exp2(rounding_mode rounding = default_rounding_mode) const;
-    number expm1(rounding_mode rounding = default_rounding_mode) const;
-    number log(rounding_mode rounding = default_rounding_mode) const;
-    number log2(rounding_mode rounding = default_rounding_mode) const;
-    number log10(rounding_mode rounding = default_rounding_mode) const;
-    number log1p(rounding_mode rounding = default_rounding_mode) const;
+    [[nodiscard]] number exp(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number exp2(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number expm1(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number log(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number log2(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number log10(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number log1p(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
     // Power functions.
-    number pow(
+    [[nodiscard]] number pow(
       const number& exp,
       rounding_mode rounding = default_rounding_mode
     ) const;
-    number sqrt(rounding_mode rounding = default_rounding_mode) const;
-    number cbrt(rounding_mode rounding = default_rounding_mode) const;
-    number hypot(
+    [[nodiscard]] number sqrt(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number cbrt(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number hypot(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
 
     // Trigonometric functions.
-    number cos(rounding_mode rounding = default_rounding_mode) const;
-    number sin(rounding_mode rounding = default_rounding_mode) const;
-    number tan(rounding_mode rounding = default_rounding_mode) const;
-    number acos(rounding_mode rounding = default_rounding_mode) const;
-    number asin(rounding_mode rounding = default_rounding_mode) const;
-    number atan(rounding_mode rounding = default_rounding_mode) const;
-    number atan2(
+    [[nodiscard]] number cos(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number sin(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number tan(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number acos(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number asin(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number atan(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number atan2(
       const number& that,
       rounding_mode rounding = default_rounding_mode
     ) const;
 
     // Hyperbolic functions.
-    number sinh(rounding_mode rounding = default_rounding_mode) const;
-    number cosh(rounding_mode rounding = default_rounding_mode) const;
-    number tanh(rounding_mode rounding = default_rounding_mode) const;
-    number asinh(rounding_mode rounding = default_rounding_mode) const;
-    number acosh(rounding_mode rounding = default_rounding_mode) const;
-    number atanh(rounding_mode rounding = default_rounding_mode) const;
+    [[nodiscard]] number sinh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number cosh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number tanh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number asinh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number acosh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
+    [[nodiscard]] number atanh(
+      rounding_mode rounding = default_rounding_mode
+    ) const;
 
-    std::string to_string(
+    [[nodiscard]] std::string to_string(
       const std::string& format = "",
       rounding_mode rounding = default_rounding_mode
     ) const;
 
-    std::u32string to_u32string(
+    [[nodiscard]] std::u32string to_u32string(
       const std::string& format = "",
       rounding_mode rounding = default_rounding_mode
     ) const;
@@ -857,5 +878,5 @@ namespace peelo
   /**
    * Returns textual description of measurement unit type.
    */
-  std::string to_string(enum number::unit::type type);
+  [[nodiscard]] std::string to_string(enum number::unit::type type);
 }
