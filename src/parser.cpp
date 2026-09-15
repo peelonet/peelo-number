@@ -25,21 +25,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <cctype>
-#include <cerrno>
-#include <climits>
+#include <charconv>
 #include <cstddef>
-#include <cstdlib>
 #include <stdexcept>
 #include <string_view>
 
 #include "peelo/number.hpp"
 
+#include "./parser_internal.hpp"
 #include "./storage_api.hpp"
 
 namespace peelo
 {
-  using digit_test_function = int(*)(int);
-
   static inline bool
   is_underscore(char c)
   {
@@ -52,11 +49,24 @@ namespace peelo
     return static_cast<unsigned char>(c);
   }
 
+  static inline int
+  test_decimal_digit(int c)
+  {
+    return std::isdigit(c);
+  }
+
+  static inline int
+  test_hex_digit(int c)
+  {
+    return std::isxdigit(c);
+  }
+
+  template<internal::digit_classifier DigitTest>
   static inline bool
   is_valid_underscore(
     std::string_view input,
     std::size_t index,
-    digit_test_function tester
+    DigitTest tester
   )
   {
     if (index == 0 || index + 1 >= input.length())
@@ -115,6 +125,24 @@ namespace peelo
     }
   }
 
+  static bool
+  try_parse_small_integer(
+    std::string_view numeric,
+    int base,
+    std::int64_t& value
+  )
+  {
+    const auto parsed = std::from_chars(
+      numeric.data(),
+      numeric.data() + numeric.size(),
+      value,
+      base
+    );
+
+    return parsed.ec == std::errc()
+      && parsed.ptr == numeric.data() + numeric.size();
+  }
+
   static void
   parse_numeric_token(
     number& result,
@@ -131,32 +159,29 @@ namespace peelo
       return;
     }
 
-    errno = 0;
-    char* end = nullptr;
-    const long long parsed = std::strtoll(numeric.c_str(), &end, base);
+    std::int64_t parsed = 0;
 
-    if (end != numeric.c_str() + numeric.length() || errno == ERANGE)
+    if (try_parse_small_integer(std::string_view(numeric), base, parsed))
     {
-      parse_mpfr_str(result, numeric, base, rounding, unit);
+      internal::destroy(result);
+      internal::init_small(result, parsed);
       return;
     }
 
-    internal::destroy(result);
-    internal::init_small(result, static_cast<std::int64_t>(parsed));
+    parse_mpfr_str(result, numeric, base, rounding, unit);
   }
 
+  template<internal::digit_classifier DigitTest>
   static bool
-  validator_backend(std::string_view input, int base)
+  validator_backend(
+    std::string_view input,
+    int base,
+    DigitTest tester
+  )
   {
     const auto length = input.length();
     std::size_t start;
-    digit_test_function tester = std::isdigit;
     bool dot_seen = false;
-
-    if (base == 16)
-    {
-      tester = std::isxdigit;
-    }
 
     if (!length)
     {
@@ -200,23 +225,19 @@ namespace peelo
     return true;
   }
 
+  template<internal::digit_classifier DigitTest>
   static void
   parser_backend(
     std::string_view input,
     int base,
     number::rounding_mode rounding,
-    number& result
+    number& result,
+    DigitTest tester
   )
   {
     const auto length = input.length();
     std::size_t start;
-    digit_test_function tester = std::isdigit;
     bool dot_seen = false;
-
-    if (base == 16)
-    {
-      tester = std::isxdigit;
-    }
 
     if (!length)
     {
@@ -279,6 +300,41 @@ namespace peelo
     );
   }
 
+  template<internal::ascii_parse_input Input>
+  static bool
+  validate_ascii_input(const Input& input, int base)
+  {
+    const std::string_view view(input);
+
+    if (base == 16)
+    {
+      return validator_backend(view, base, test_hex_digit);
+    }
+
+    return validator_backend(view, base, test_decimal_digit);
+  }
+
+  template<internal::ascii_parse_input Input>
+  static number
+  parse_ascii_input(
+    const Input& input,
+    int base,
+    number::rounding_mode rounding
+  )
+  {
+    number result;
+    const std::string_view view(input);
+
+    if (base == 16)
+    {
+      parser_backend(view, base, rounding, result, test_hex_digit);
+    } else {
+      parser_backend(view, base, rounding, result, test_decimal_digit);
+    }
+
+    return result;
+  }
+
   static std::string
   u32string_to_ascii(const std::u32string& input)
   {
@@ -296,32 +352,24 @@ namespace peelo
   bool
   number::is_valid(std::string_view input, int base)
   {
-    return validator_backend(input, base);
+    return validate_ascii_input(input, base);
   }
 
   bool
   number::is_valid(const std::u32string& input, int base)
   {
-    return validator_backend(u32string_to_ascii(input), base);
+    return validate_ascii_input(u32string_to_ascii(input), base);
   }
 
   number
   number::parse(std::string_view input, int base, rounding_mode rounding)
   {
-    number result;
-
-    parser_backend(input, base, rounding, result);
-
-    return result;
+    return parse_ascii_input(input, base, rounding);
   }
 
   number
   number::parse(const std::u32string& input, int base, rounding_mode rounding)
   {
-    number result;
-
-    parser_backend(u32string_to_ascii(input), base, rounding, result);
-
-    return result;
+    return parse_ascii_input(u32string_to_ascii(input), base, rounding);
   }
 }
