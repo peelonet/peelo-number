@@ -25,6 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <catch2/catch_test_macros.hpp>
+#include <string_view>
 
 #include "peelo/number.hpp"
 
@@ -105,4 +106,19 @@ TEST_CASE("Parsing Unicode string")
 {
   REQUIRE(number::parse(U"2.5").equals(2.5));
   REQUIRE(number::parse(U"13km").equals(13, number::unit::kilometer));
+}
+
+TEST_CASE("Parsing and validating string_view slices")
+{
+  constexpr std::string_view buffer = "prefix 15_000_000km suffix";
+  const std::string_view token = buffer.substr(7, 12);
+
+  REQUIRE(number::is_valid(token));
+  REQUIRE(
+    number::parse(token).equals(
+      15000000,
+      number::unit::kilometer
+    )
+  );
+  REQUIRE(unit::find_by_symbol(token.substr(10)) == number::unit::kilometer);
 }

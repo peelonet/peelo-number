@@ -29,8 +29,8 @@
 #include <climits>
 #include <cstddef>
 #include <cstdlib>
-#include <functional>
 #include <stdexcept>
+#include <string_view>
 
 #include "peelo/number.hpp"
 
@@ -41,14 +41,20 @@ namespace peelo
   using digit_test_function = int(*)(int);
 
   static inline bool
-  is_underscore(int c)
+  is_underscore(char c)
   {
     return c == '_';
   }
 
+  static inline int
+  as_digit(int c)
+  {
+    return static_cast<unsigned char>(c);
+  }
+
   static inline bool
   is_valid_underscore(
-    const std::string& input,
+    std::string_view input,
     std::size_t index,
     digit_test_function tester
   )
@@ -58,24 +64,33 @@ namespace peelo
       return false;
     }
 
-    return tester(input[index - 1]) && tester(input[index + 1]);
+    return tester(as_digit(input[index - 1]))
+      && tester(as_digit(input[index + 1]));
   }
 
-  static inline std::string
-  strip_underscores(const std::string& input)
+  static std::string
+  strip_underscores(std::string_view input)
   {
-    std::string result;
-
-    result.reserve(input.length());
-    for (const auto c : input)
+    for (const char c : input)
     {
-      if (c != '_')
+      if (is_underscore(c))
       {
-        result.push_back(c);
+        std::string result;
+
+        result.reserve(input.length());
+        for (const char ch : input)
+        {
+          if (!is_underscore(ch))
+          {
+            result.push_back(ch);
+          }
+        }
+
+        return result;
       }
     }
 
-    return result;
+    return std::string(input);
   }
 
   static void
@@ -130,15 +145,8 @@ namespace peelo
     internal::init_small(result, static_cast<std::int64_t>(parsed));
   }
 
-  template<class CharT>
   static bool
-  validator_backend(
-    const std::basic_string<CharT>& input,
-    int base,
-    const std::function<
-      std::string(const std::basic_string<CharT>&)
-    >& encoder
-  )
+  validator_backend(std::string_view input, int base)
   {
     const auto length = input.length();
     std::size_t start;
@@ -166,7 +174,7 @@ namespace peelo
     }
     for (std::size_t i = start; i < length; ++i)
     {
-      const auto& c = input[i];
+      const char c = input[i];
 
       if (c == '.')
       {
@@ -178,32 +186,26 @@ namespace peelo
       }
       else if (is_underscore(c))
       {
-        if (!is_valid_underscore(encoder(input), i, tester))
+        if (!is_valid_underscore(input, i, tester))
         {
           return false;
         }
       }
-      else if (!tester(c))
+      else if (!tester(as_digit(c)))
       {
-        return number::unit::find_by_symbol(
-          encoder(input.substr(i, length - i))
-        ).has_value();
+        return number::unit::find_by_symbol(input.substr(i)).has_value();
       }
     }
 
     return true;
   }
 
-  template<class CharT>
   static void
   parser_backend(
-    const std::basic_string<CharT>& input,
+    std::string_view input,
     int base,
     number::rounding_mode rounding,
-    number& result,
-    const std::function<
-      std::string(const std::basic_string<CharT>&)
-    >& encoder
+    number& result
   )
   {
     const auto length = input.length();
@@ -229,7 +231,7 @@ namespace peelo
 
     for (std::size_t i = start; i < length; ++i)
     {
-      const auto& c = input[i];
+      const char c = input[i];
 
       if (c == '.')
       {
@@ -241,24 +243,20 @@ namespace peelo
       }
       else if (is_underscore(c))
       {
-        if (!is_valid_underscore(encoder(input), i, tester))
+        if (!is_valid_underscore(input, i, tester))
         {
           throw std::invalid_argument("invalid underscore placement in input");
         }
       }
-      else if (!tester(c))
+      else if (!tester(as_digit(c)))
       {
         if (i == 0)
         {
           throw std::invalid_argument("input does not contain a number");
         }
 
-        const auto numeric = strip_underscores(
-          encoder(input.substr(0, i))
-        );
-        const auto unit = number::unit::find_by_symbol(
-          encoder(input.substr(i, length - i))
-        );
+        const auto numeric = strip_underscores(input.substr(0, i));
+        const auto unit = number::unit::find_by_symbol(input.substr(i));
 
         if (!unit)
         {
@@ -273,7 +271,7 @@ namespace peelo
 
     parse_numeric_token(
       result,
-      strip_underscores(encoder(input)),
+      strip_underscores(input),
       base,
       rounding,
       std::nullopt,
@@ -281,45 +279,38 @@ namespace peelo
     );
   }
 
-  static inline std::string
-  char_encoder(const std::string& input)
+  static std::string
+  u32string_to_ascii(const std::u32string& input)
   {
-    return input;
-  }
-
-  static inline std::string
-  char32_t_encoder(const std::u32string& input)
-  {
-    const auto length = input.length();
     std::string result;
 
-    result.reserve(length);
-    for (std::u32string::size_type i = 0; i < length; ++i)
+    result.reserve(input.length());
+    for (const char32_t c : input)
     {
-      result.push_back(static_cast<char>(input[i]));
+      result.push_back(static_cast<char>(c));
     }
 
     return result;
   }
 
   bool
-  number::is_valid(const std::string& input, int base)
+  number::is_valid(std::string_view input, int base)
   {
-    return validator_backend<char>(input, base, char_encoder);
+    return validator_backend(input, base);
   }
 
   bool
   number::is_valid(const std::u32string& input, int base)
   {
-    return validator_backend<char32_t>(input, base, char32_t_encoder);
+    return validator_backend(u32string_to_ascii(input), base);
   }
 
   number
-  number::parse(const std::string& input, int base, rounding_mode rounding)
+  number::parse(std::string_view input, int base, rounding_mode rounding)
   {
     number result;
 
-    parser_backend<char>(input, base, rounding, result, char_encoder);
+    parser_backend(input, base, rounding, result);
 
     return result;
   }
@@ -329,7 +320,7 @@ namespace peelo
   {
     number result;
 
-    parser_backend<char32_t>(input, base, rounding, result, char32_t_encoder);
+    parser_backend(u32string_to_ascii(input), base, rounding, result);
 
     return result;
   }

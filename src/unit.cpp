@@ -24,6 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <string_view>
 #include <unordered_map>
 
 #include "peelo/number.hpp"
@@ -130,13 +131,14 @@ namespace peelo
   };
 
   std::optional<number::unit>
-  number::unit::find_by_symbol(const std::string& symbol)
+  number::unit::find_by_symbol(std::string_view symbol)
   {
-    const auto entry = symbol_mapping.find(symbol);
-
-    if (entry != std::end(symbol_mapping))
+    for (const auto& entry : symbol_mapping)
     {
-      return entry->second;
+      if (entry.first == symbol)
+      {
+        return entry.second;
+      }
     }
 
     return std::nullopt;

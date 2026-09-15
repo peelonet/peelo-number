@@ -31,6 +31,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <mpfr.h>
@@ -112,7 +113,7 @@ namespace peelo
       /**
        * Searches for measurement unit based on it's symbol.
        */
-      static std::optional<unit> find_by_symbol(const std::string& symbol);
+      static std::optional<unit> find_by_symbol(std::string_view symbol);
 
       /**
        * Determines base unit of given type.
@@ -167,7 +168,7 @@ namespace peelo
     /**
      * Tests whether given string contains valid number.
      */
-    static bool is_valid(const std::string& input, int base = 10);
+    static bool is_valid(std::string_view input, int base = 10);
 
     /**
      * Tests whether given Unicode string contains valid number.
@@ -181,7 +182,7 @@ namespace peelo
      *                               has unrecognized measurement unit symbol.
      */
     static number parse(
-      const std::string& input,
+      std::string_view input,
       int base = 10,
       rounding_mode rounding = default_rounding_mode
     );
