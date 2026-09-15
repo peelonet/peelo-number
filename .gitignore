@@ -1,5 +1,5 @@
-/build
-/build-wasm
+/a.out
+/build*
 /examples/wasm-consumer/build
 /doxygen
 /wasm-deps
