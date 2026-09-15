@@ -24,16 +24,57 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "./storage_api.hpp"
-
 #include <cassert>
 #include <climits>
 #include <cstdint>
 
+#include "./storage_api.hpp"
 #include "./storage.hpp"
 
 namespace peelo::internal
 {
+  /**
+   * Assign optional units without std::optional::operator=, which triggers
+   * false-positive -Wmaybe-uninitialized warnings in GCC when inlined.
+   */
+  static void
+  assign_unit(
+    peelo::number::unit_type& dst,
+    const peelo::number::unit_type& src
+  )
+  {
+    if (src)
+    {
+      if (dst)
+      {
+        *dst = *src;
+      } else {
+        dst.emplace(*src);
+      }
+    } else {
+      dst.reset();
+    }
+  }
+
+  static void
+  assign_unit(
+    peelo::number::unit_type& dst,
+    peelo::number::unit_type&& src
+  )
+  {
+    if (src)
+    {
+      if (dst)
+      {
+        *dst = std::move(*src);
+      } else {
+        dst.emplace(std::move(*src));
+      }
+    } else {
+      dst.reset();
+    }
+  }
+
   mpfr_holder::mpfr_holder()
   {
     mpfr_init2(value, mpfr_get_default_prec());
@@ -195,8 +236,8 @@ namespace peelo::internal
   void
   number_access::copy_from(number& dst, const number& src)
   {
-    destroy(dst);
-    dst.m_unit = src.m_unit;
+    dst.m_mpfr.reset();
+    assign_unit(dst.m_unit, src.m_unit);
 
     if (src.m_storage == storage_kind::small)
     {
@@ -218,8 +259,8 @@ namespace peelo::internal
   void
   number_access::move_from(number& dst, number&& src)
   {
-    destroy(dst);
-    dst.m_unit = std::move(src.m_unit);
+    dst.m_mpfr.reset();
+    assign_unit(dst.m_unit, std::move(src.m_unit));
     dst.m_storage = src.m_storage;
     dst.m_small = src.m_small;
     dst.m_mpfr = std::move(src.m_mpfr);
