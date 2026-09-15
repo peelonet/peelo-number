@@ -24,6 +24,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <compare>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include "peelo/number.hpp"
@@ -106,19 +108,19 @@ TEST_CASE("Comparison operators")
 
 TEST_CASE("Three-way comparison operators")
 {
-  REQUIRE((number(1.0) <=> number(1.0)) == 0);
-  REQUIRE((number(1.0) <=> number(2.0)) < 0);
-  REQUIRE((number(2.0) <=> number(1.0)) > 0);
+  REQUIRE(std::is_eq(number(1.0) <=> number(1.0)));
+  REQUIRE(std::is_lt(number(1.0) <=> number(2.0)));
+  REQUIRE(std::is_gt(number(2.0) <=> number(1.0)));
   REQUIRE(
-    (number(1.0, unit::meter) <=> number(1.0, unit::kilometer)) < 0
+    std::is_lt(number(1.0, unit::meter) <=> number(1.0, unit::kilometer))
   );
 
-  REQUIRE((number(1.0) <=> 1.0) == 0);
-  REQUIRE((number(1.0) <=> 2.0) < 0);
-  REQUIRE((number(2.0) <=> 1.0) > 0);
+  REQUIRE(std::is_eq(number(1.0) <=> 1.0));
+  REQUIRE(std::is_lt(number(1.0) <=> 2.0));
+  REQUIRE(std::is_gt(number(2.0) <=> 1.0));
 
-  REQUIRE((unit::meter <=> unit::meter) == 0);
-  REQUIRE((unit::meter <=> unit::kilometer) < 0);
-  REQUIRE((unit::kilometer <=> unit::meter) > 0);
-  REQUIRE((unit::meter <=> unit::gram) != 0);
+  REQUIRE(std::is_eq(unit::meter <=> unit::meter));
+  REQUIRE(std::is_lt(unit::meter <=> unit::kilometer));
+  REQUIRE(std::is_gt(unit::kilometer <=> unit::meter));
+  REQUIRE(!std::is_eq(unit::meter <=> unit::gram));
 }
