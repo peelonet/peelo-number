@@ -24,10 +24,67 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <functional>
 #include <string_view>
 #include <unordered_map>
 
 #include "peelo/number.hpp"
+
+namespace
+{
+  struct unit_symbol_hash
+  {
+    using is_transparent = void;
+
+    [[nodiscard]] std::size_t
+    operator()(const std::string& value) const noexcept
+    {
+      return std::hash<std::string>{}(value);
+    }
+
+    [[nodiscard]] std::size_t
+    operator()(std::string_view value) const noexcept
+    {
+      return std::hash<std::string_view>{}(value);
+    }
+  };
+
+  struct unit_symbol_equal
+  {
+    using is_transparent = void;
+
+    [[nodiscard]] bool
+    operator()(const std::string& lhs, const std::string& rhs) const noexcept
+    {
+      return lhs == rhs;
+    }
+
+    [[nodiscard]] bool
+    operator()(std::string_view lhs, std::string_view rhs) const noexcept
+    {
+      return lhs == rhs;
+    }
+
+    [[nodiscard]] bool
+    operator()(const std::string& lhs, std::string_view rhs) const noexcept
+    {
+      return lhs == rhs;
+    }
+
+    [[nodiscard]] bool
+    operator()(std::string_view lhs, const std::string& rhs) const noexcept
+    {
+      return lhs == rhs;
+    }
+  };
+
+  using unit_symbol_map = std::unordered_map<
+    std::string,
+    peelo::number::unit,
+    unit_symbol_hash,
+    unit_symbol_equal
+  >;
+}
 
 namespace peelo
 {
@@ -109,7 +166,7 @@ namespace peelo
     86400
   };
 
-  static const std::unordered_map<std::string, number::unit> symbol_mapping =
+  static const unit_symbol_map symbol_mapping =
   {
     // Length units.
     { "mm", number::unit::millimeter },
@@ -133,12 +190,11 @@ namespace peelo
   std::optional<number::unit>
   number::unit::find_by_symbol(std::string_view symbol)
   {
-    for (const auto& entry : symbol_mapping)
+    const auto entry = symbol_mapping.find(symbol);
+
+    if (entry != symbol_mapping.end())
     {
-      if (entry.first == symbol)
-      {
-        return entry.second;
-      }
+      return entry->second;
     }
 
     return std::nullopt;
